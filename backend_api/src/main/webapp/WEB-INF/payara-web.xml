@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<payara-web-app>
+    <context-root>/</context-root>
+</payara-web-app>
