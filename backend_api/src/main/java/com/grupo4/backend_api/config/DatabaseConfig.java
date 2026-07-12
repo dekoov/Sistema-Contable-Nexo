@@ -17,7 +17,7 @@ import jakarta.enterprise.context.ApplicationScoped;
     user = "usuario_nexo",                         // Tu usuario
     password = "admin123",                     // Tu contraseña
     databaseName = "nexo_db",                  // Tu BD
-    serverName = "localhost",
+    serverName = "haproxy",
     portNumber = 5432,
     minPoolSize = 2,
     maxPoolSize = 20

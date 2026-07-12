@@ -87,3 +87,6 @@ coverage/
 
 *.class
 /backend_api/nbproject/
+
+docker/payara/backend_api.war
+target/
