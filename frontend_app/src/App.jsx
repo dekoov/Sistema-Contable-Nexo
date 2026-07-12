@@ -6,6 +6,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import ClientesPage from "./pages/facturacion/ClientesPage";
 import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
+import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -39,11 +40,7 @@ const routeDefinitions = [
   ],
 
   
-  [
-    "/inventario/tipos-movimiento",
-    "Tipos de movimiento",
-    "Mantenimiento de ingresos y egresos.",
-  ],
+  
   [
     "/inventario/comprobantes",
     "Comprobantes",
@@ -119,6 +116,11 @@ export default function App() {
           <Route
           path="/inventario/articulos"
           element={<ArticulosPage />}
+          />
+
+          <Route
+            path="/inventario/tipos-movimiento"
+            element={<TiposMovimientoPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
