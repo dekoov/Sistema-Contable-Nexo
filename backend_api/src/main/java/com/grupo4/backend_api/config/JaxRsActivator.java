@@ -5,5 +5,5 @@ import jakarta.ws.rs.core.Application;
 
 @ApplicationPath("/api")
 public class JaxRsActivator extends Application {
-  // Deja esta clase vacía. Activa automáticamente JAX-RS en
+    // Deja esta clase vacía. Activa automáticamente JAX-RS en
 }
