@@ -15,9 +15,6 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: env.BACKEND_TARGET || "http://localhost:8080",
           changeOrigin: true,
-
-          // /api/clientes se transforma en /resources/clientes
-          rewrite: (path) => path.replace(/^\/api/, "/resources"),
         },
       },
     },
