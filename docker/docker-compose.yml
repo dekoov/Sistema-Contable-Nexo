@@ -1,0 +1,42 @@
+name: nexo-app-cluster
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
+    ports:
+      - "9090:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - payara-nodo1
+      - payara-nodo2
+      - payara-nodo3
+    networks:
+      - patroni-net
+
+  payara-nodo1:
+    build:
+      context: ./payara
+    container_name: payara-nodo1
+    networks:
+      - patroni-net
+
+  payara-nodo2:
+    build:
+      context: ./payara
+    container_name: payara-nodo2
+    networks:
+      - patroni-net
+
+  payara-nodo3:
+    build:
+      context: ./payara
+    container_name: payara-nodo3
+    networks:
+      - patroni-net
+
+networks:
+  patroni-net:
+    external: true
+    name: nexo-db-cluster_patroni-net

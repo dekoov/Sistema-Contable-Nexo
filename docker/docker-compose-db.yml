@@ -112,7 +112,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./docker/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     networks:
       - patroni-net
 
