@@ -4,6 +4,7 @@ import AppLayout from "./components/layout/AppLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import ClientesPage from "./pages/facturacion/ClientesPage";
+import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -111,6 +112,11 @@ export default function App() {
           <Route
             path="/facturacion/clientes"
             element={<ClientesPage />}
+          />
+
+          <Route
+            path="/facturacion/ciudades"
+            element={<CiudadesPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
