@@ -5,6 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import ClientesPage from "./pages/facturacion/ClientesPage";
 import CiudadesPage from "./pages/facturacion/CiudadesPage";
+import ArticulosPage from "./pages/inventario/ArticulosPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -37,11 +38,7 @@ const routeDefinitions = [
     "Reporte cruzado de artículos por cliente.",
   ],
 
-  [
-    "/inventario/articulos",
-    "Artículos",
-    "Mantenimiento de artículos.",
-  ],
+  
   [
     "/inventario/tipos-movimiento",
     "Tipos de movimiento",
@@ -117,6 +114,11 @@ export default function App() {
           <Route
             path="/facturacion/ciudades"
             element={<CiudadesPage />}
+          />
+
+          <Route
+          path="/inventario/articulos"
+          element={<ArticulosPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
