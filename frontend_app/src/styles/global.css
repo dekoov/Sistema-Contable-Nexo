@@ -1,0 +1,284 @@
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f4f7fb;
+}
+
+a {
+  text-decoration: none;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 270px;
+  overflow-y: auto;
+  color: #fff;
+  background: linear-gradient(180deg, #102a43 0%, #163a5f 100%);
+  z-index: 20;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
+.sidebar-brand strong,
+.sidebar-brand small {
+  display: block;
+}
+
+.sidebar-brand small {
+  color: #b8c9dc;
+}
+
+.brand-mark,
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-weight: 800;
+  color: #102a43;
+  background: #fff;
+}
+
+.sidebar-nav {
+  padding: 14px;
+}
+
+.sidebar-section {
+  margin-top: 18px;
+}
+
+.sidebar-section-title {
+  padding: 8px 12px;
+  color: #93b4d5;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 10px 12px;
+  margin: 3px 0;
+  border-radius: 9px;
+  color: #dce9f5;
+  transition: 150ms ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+}
+
+.app-content {
+  width: calc(100% - 270px);
+  margin-left: 270px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 78px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgb(255 255 255 / 95%);
+  backdrop-filter: blur(10px);
+}
+
+.server-instance {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+
+.status-ok {
+  background: #22c55e;
+}
+
+.status-error {
+  background: #ef4444;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-heading h1 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  font-weight: 800;
+}
+
+.page-heading p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.module-card {
+  display: block;
+  min-height: 170px;
+  padding: 24px;
+  border: 1px solid #e5eaf1;
+  border-radius: 18px;
+  color: #172033;
+  background: #fff;
+  box-shadow: 0 8px 25px rgb(15 23 42 / 6%);
+  transition: 160ms ease;
+}
+
+.module-card:hover {
+  color: #172033;
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 11%);
+}
+
+.module-card small {
+  color: #3b82f6;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.module-card h2 {
+  margin: 18px 0 24px;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.module-card span {
+  color: #64748b;
+}
+
+.login-page {
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top left, rgb(59 130 246 / 35%), transparent 32%),
+    radial-gradient(circle at bottom right, rgb(16 185 129 / 25%), transparent 30%),
+    #0f2740;
+}
+
+.login-card {
+  width: min(100%, 440px);
+  padding: 36px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.login-brand .login-logo {
+  color: #fff;
+  background: #163a5f;
+}
+
+.login-brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.login-brand p {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.google-button-container {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    max-height: none;
+  }
+
+  .app-shell {
+    display: block;
+  }
+
+  .app-content {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .sidebar-nav {
+    display: none;
+  }
+
+  .topbar {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .server-instance {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-card {
+    padding: 24px;
+  }
+
+  .server-instance {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
