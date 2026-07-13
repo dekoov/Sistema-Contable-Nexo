@@ -8,6 +8,7 @@ import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import CobradoresPage from "./pages/cxc/CobradoresPage";
+import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -54,11 +55,7 @@ const routeDefinitions = [
   ],
 
 
-  [
-    "/cxc/formas-pago",
-    "Formas de pago",
-    "Mantenimiento de formas de pago.",
-  ],
+
   [
     "/cxc/pagos",
     "Pagos",
@@ -123,6 +120,11 @@ export default function App() {
           <Route
             path="/cxc/cobradores"
             element={<CobradoresPage />}
+          />
+
+          <Route
+            path="/cxc/formas-pago"
+            element={<FormasPagoPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
