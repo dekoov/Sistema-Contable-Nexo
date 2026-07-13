@@ -11,6 +11,7 @@ import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import ComprobantesPage from "./pages/inventario/ComprobantesPage";
 import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
+import PagosPage from "./pages/cxc/PagosPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -47,12 +48,6 @@ const routeDefinitions = [
   ],
 
 
-
-  [
-    "/cxc/pagos",
-    "Pagos",
-    "Registro de pagos asociados a facturas.",
-  ],
   [
     "/cxc/reportes/estado-cuenta",
     "Estado de cuenta",
@@ -127,6 +122,11 @@ export default function App() {
           <Route
             path="/cxc/formas-pago"
             element={<FormasPagoPage />}
+          />
+
+          <Route
+            path="/cxc/pagos"
+            element={<PagosPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
