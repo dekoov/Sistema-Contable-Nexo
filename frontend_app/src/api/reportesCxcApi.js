@@ -328,3 +328,276 @@ export async function obtenerEstadoCuenta(
     throw error;
   }
 }
+
+function normalizarRegistroRecaudacion(registro) {
+  if (Array.isArray(registro)) {
+    return {
+      idCobrador: null,
+      nombreCobrador: String(
+        registro[0] ?? "Sin cobrador",
+      ),
+      codigoFormaPago: null,
+      formaPago: String(
+        registro[1] ?? "Sin forma de pago",
+      ),
+      total: Number(registro[2] ?? 0),
+    };
+  }
+
+  const cobrador =
+    registro.cobrador &&
+    typeof registro.cobrador === "object"
+      ? registro.cobrador
+      : null;
+
+  const formaPago =
+    registro.formaPago &&
+    typeof registro.formaPago === "object"
+      ? registro.formaPago
+      : null;
+
+  return {
+    idCobrador:
+      registro.idCobrador !== undefined
+        ? Number(registro.idCobrador)
+        : cobrador?.idCobrador !== undefined
+          ? Number(cobrador.idCobrador)
+          : null,
+
+    nombreCobrador: String(
+      registro.nombreCobrador ??
+        cobrador?.nombre ??
+        registro.cobrador ??
+        "Sin cobrador",
+    ),
+
+    codigoFormaPago:
+      registro.codigoFormaPago !== undefined
+        ? Number(registro.codigoFormaPago)
+        : formaPago?.codigo !== undefined
+          ? Number(formaPago.codigo)
+          : null,
+
+    formaPago: String(
+      registro.nombreFormaPago ??
+        formaPago?.nombre ??
+        registro.formaPago ??
+        "Sin forma de pago",
+    ),
+
+    total: Number(
+      registro.total ??
+        registro.totalRecaudado ??
+        registro.valor ??
+        0,
+    ),
+  };
+}
+
+function convertirRespuestaMatrizRecaudacion(data) {
+  const fuente =
+    data &&
+    typeof data === "object" &&
+    Array.isArray(data.filas)
+      ? data.filas
+      : data;
+
+  /*
+   * Formato posible:
+   *
+   * [
+   *   {
+   *     "nombreCobrador": "Juan",
+   *     "valoresPorFormaPago": {
+   *       "Efectivo": 100,
+   *       "Transferencia": 50
+   *     },
+   *     "totalRecaudado": 150
+   *   }
+   * ]
+   */
+  if (Array.isArray(fuente)) {
+    return fuente.flatMap((registro) => {
+      if (
+        registro &&
+        typeof registro === "object" &&
+        registro.valoresPorFormaPago &&
+        typeof registro.valoresPorFormaPago ===
+          "object"
+      ) {
+        return Object.entries(
+          registro.valoresPorFormaPago,
+        ).map(([formaPago, total]) => ({
+          idCobrador:
+            registro.idCobrador !== undefined
+              ? Number(registro.idCobrador)
+              : null,
+
+          nombreCobrador: String(
+            registro.nombreCobrador ??
+              "Sin cobrador",
+          ),
+
+          codigoFormaPago: null,
+          formaPago,
+          total: Number(total ?? 0),
+        }));
+      }
+
+      return [
+        normalizarRegistroRecaudacion(
+          registro,
+        ),
+      ];
+    });
+  }
+
+  /*
+   * También acepta:
+   *
+   * {
+   *   "Juan": {
+   *     "Efectivo": 100,
+   *     "Transferencia": 50
+   *   }
+   * }
+   */
+  if (
+    fuente &&
+    typeof fuente === "object"
+  ) {
+    return Object.entries(fuente).flatMap(
+      ([nombreCobrador, valores]) => {
+        if (
+          !valores ||
+          typeof valores !== "object"
+        ) {
+          return [];
+        }
+
+        return Object.entries(valores).map(
+          ([formaPago, total]) => ({
+            idCobrador: null,
+            nombreCobrador,
+            codigoFormaPago: null,
+            formaPago,
+            total: Number(total ?? 0),
+          }),
+        );
+      },
+    );
+  }
+
+  return [];
+}
+
+function construirMatrizRecaudacionMock(
+  pagos,
+  fechaInicio,
+  fechaFin,
+) {
+  const acumulados = new Map();
+
+  pagos
+    .filter((pago) =>
+      fechaEstaEnRango(
+        pago.fechaPago,
+        fechaInicio,
+        fechaFin,
+      ),
+    )
+    .forEach((pago) => {
+      const idCobrador =
+        pago.cobrador?.idCobrador !== undefined
+          ? Number(
+              pago.cobrador.idCobrador,
+            )
+          : null;
+
+      const nombreCobrador =
+        pago.cobrador?.nombre?.trim() ||
+        "Sin cobrador";
+
+      const codigoFormaPago =
+        pago.formaPago?.codigo !== undefined
+          ? Number(pago.formaPago.codigo)
+          : null;
+
+      const formaPago =
+        pago.formaPago?.nombre?.trim() ||
+        "Sin forma de pago";
+
+      const clave = [
+        idCobrador ?? nombreCobrador,
+        codigoFormaPago ?? formaPago,
+      ].join("::");
+
+      const actual = acumulados.get(clave) ?? {
+        idCobrador,
+        nombreCobrador,
+        codigoFormaPago,
+        formaPago,
+        total: 0,
+      };
+
+      actual.total += Number(
+        pago.valor || 0,
+      );
+
+      acumulados.set(clave, actual);
+    });
+
+  return Array.from(acumulados.values()).sort(
+    (a, b) => {
+      const comparacionCobrador =
+        a.nombreCobrador.localeCompare(
+          b.nombreCobrador,
+        );
+
+      if (comparacionCobrador !== 0) {
+        return comparacionCobrador;
+      }
+
+      return a.formaPago.localeCompare(
+        b.formaPago,
+      );
+    },
+  );
+}
+
+export async function obtenerMatrizRecaudacion(
+  fechaInicio,
+  fechaFin,
+) {
+  if (USE_MOCK_API) {
+    const pagos = await listarPagos();
+
+    return construirMatrizRecaudacionMock(
+      pagos,
+      fechaInicio,
+      fechaFin,
+    );
+  }
+
+  try {
+    const response = await apiClient.get(
+      "/cxc/reportes/matriz-recaudacion",
+      {
+        params: {
+          fechaInicio,
+          fechaFin,
+        },
+      },
+    );
+
+    return convertirRespuestaMatrizRecaudacion(
+      extraerData(response),
+    );
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return [];
+    }
+
+    throw error;
+  }
+}

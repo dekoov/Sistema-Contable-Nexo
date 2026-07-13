@@ -16,6 +16,7 @@ import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import PagosPage from "./pages/cxc/PagosPage";
 import EstadoCuentaPage from "./pages/cxc/reportes/EstadoCuentaPage";
+import MatrizRecaudacionPage from "./pages/cxc/reportes/MatrizRecaudacionPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -33,12 +34,6 @@ const routeDefinitions = [
     "Mantenimiento de ciudades de entrega.",
   ],
 
-
-  [
-    "/cxc/reportes/matriz-recaudacion",
-    "Matriz de recaudación",
-    "Reporte por cobrador y forma de pago.",
-  ],
 
   [
     "/integracion/cola",
@@ -128,6 +123,11 @@ export default function App() {
           <Route
             path="/cxc/reportes/estado-cuenta"
             element={<EstadoCuentaPage />}
+          />
+
+          <Route
+            path="/cxc/reportes/matriz-recaudacion"
+            element={<MatrizRecaudacionPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
