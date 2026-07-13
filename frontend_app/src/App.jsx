@@ -16,17 +16,14 @@ import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import PagosPage from "./pages/cxc/PagosPage";
 import EstadoCuentaPage from "./pages/cxc/reportes/EstadoCuentaPage";
+import UsuariosPage from "./pages/admin/UsuariosPage";
 import MatrizRecaudacionPage from "./pages/cxc/reportes/MatrizRecaudacionPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
 
 const routeDefinitions = [
-  [
-    "/admin/usuarios",
-    "Administración de usuarios",
-    "CRUD de usuarios y asignación de roles.",
-  ],
+
 
   [
     "/facturacion/ciudades",
@@ -58,6 +55,15 @@ export default function App() {
           <Route
             path="/dashboard"
             element={<DashboardPage />}
+          />
+
+          <Route
+            path="/admin/usuarios"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UsuariosPage />
+              </ProtectedRoute>
+            }
           />
 
           <Route
@@ -130,31 +136,20 @@ export default function App() {
             element={<MatrizRecaudacionPage />}
           />
 
-          {routeDefinitions.map(([path, title, description]) => {
-            const adminOnly = path === "/admin/usuarios";
-
-            return (
+          {routeDefinitions.map(
+            ([path, title, description]) => (
               <Route
                 key={path}
                 path={path}
                 element={
-                  adminOnly ? (
-                    <ProtectedRoute allowedRoles={["ADMIN"]}>
-                      <ModulePlaceholderPage
-                        title={title}
-                        description={description}
-                      />
-                    </ProtectedRoute>
-                  ) : (
-                    <ModulePlaceholderPage
-                      title={title}
-                      description={description}
-                    />
-                  )
+                  <ModulePlaceholderPage
+                    title={title}
+                    description={description}
+                  />
                 }
               />
-            );
-          })}
+            ),
+          )}
         </Route>
       </Route>
 
