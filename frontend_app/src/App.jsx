@@ -8,6 +8,7 @@ import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import FacturasPage from "./pages/facturacion/FacturasPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
+import ComprobantesPage from "./pages/inventario/ComprobantesPage";
 import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
@@ -39,12 +40,6 @@ const routeDefinitions = [
   ],
 
   
-  
-  [
-    "/inventario/comprobantes",
-    "Comprobantes",
-    "Pantalla cabecera-detalle de inventario.",
-  ],
   [
     "/inventario/reportes/movimientos",
     "Reporte de inventario",
@@ -117,6 +112,11 @@ export default function App() {
           <Route
             path="/inventario/tipos-movimiento"
             element={<TiposMovimientoPage />}
+          />
+
+          <Route
+            path="/inventario/comprobantes"
+            element={<ComprobantesPage />}
           />
 
           <Route
