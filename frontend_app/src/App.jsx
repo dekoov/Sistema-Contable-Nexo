@@ -11,6 +11,7 @@ import MatrizClientesPage from "./pages/facturacion/reportes/MatrizClientesPage"
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import ComprobantesPage from "./pages/inventario/ComprobantesPage";
+import MovimientosInventarioPage from "./pages/inventario/reportes/MovimientosInventarioPage";
 import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import PagosPage from "./pages/cxc/PagosPage";
@@ -31,14 +32,6 @@ const routeDefinitions = [
     "Mantenimiento de ciudades de entrega.",
   ],
 
-
-
-  
-  [
-    "/inventario/reportes/movimientos",
-    "Reporte de inventario",
-    "Reporte de movimientos por fechas.",
-  ],
 
 
   [
@@ -115,6 +108,11 @@ export default function App() {
           <Route
             path="/inventario/comprobantes"
             element={<ComprobantesPage />}
+          />
+
+          <Route
+            path="/inventario/reportes/movimientos"
+            element={<MovimientosInventarioPage />}
           />
 
           <Route
