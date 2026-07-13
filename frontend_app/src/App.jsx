@@ -7,6 +7,7 @@ import ClientesPage from "./pages/facturacion/ClientesPage";
 import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import FacturasPage from "./pages/facturacion/FacturasPage";
 import VentasCiudadPage from "./pages/facturacion/reportes/VentasCiudadPage";
+import MatrizClientesPage from "./pages/facturacion/reportes/MatrizClientesPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import ComprobantesPage from "./pages/inventario/ComprobantesPage";
@@ -30,11 +31,7 @@ const routeDefinitions = [
     "Mantenimiento de ciudades de entrega.",
   ],
 
-  [
-    "/facturacion/reportes/matriz-clientes",
-    "Matriz de ventas",
-    "Reporte cruzado de artículos por cliente.",
-  ],
+
 
   
   [
@@ -98,6 +95,11 @@ export default function App() {
           <Route
             path="/facturacion/reportes/ventas-ciudad"
             element={<VentasCiudadPage />}
+          />
+
+          <Route
+            path="/facturacion/reportes/matriz-clientes"
+            element={<MatrizClientesPage />}
           />
 
           <Route
