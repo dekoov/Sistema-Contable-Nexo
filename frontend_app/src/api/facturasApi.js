@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import {  publicarFacturaEnColaMock,} from "./integracionApi";
 
 const MOCK_STORAGE_KEY = "nexo_mock_facturas";
 
@@ -270,9 +271,13 @@ export async function crearFactura(factura) {
     };
 
     guardarFacturasMock([
-      ...facturas,
-      nuevaFactura,
+        ...facturas,
+        nuevaFactura,
     ]);
+
+    publicarFacturaEnColaMock(
+        nuevaFactura,
+    );
 
     return normalizarFactura(nuevaFactura);
   }

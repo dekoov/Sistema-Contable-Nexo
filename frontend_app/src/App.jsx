@@ -17,6 +17,7 @@ import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import PagosPage from "./pages/cxc/PagosPage";
 import EstadoCuentaPage from "./pages/cxc/reportes/EstadoCuentaPage";
 import UsuariosPage from "./pages/admin/UsuariosPage";
+import IntegracionColaPage from "./pages/integracion/IntegracionColaPage";
 import MatrizRecaudacionPage from "./pages/cxc/reportes/MatrizRecaudacionPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
@@ -32,11 +33,7 @@ const routeDefinitions = [
   ],
 
 
-  [
-    "/integracion/cola",
-    "Integración JMS",
-    "Consulta e importación de transacciones pendientes.",
-  ],
+
 ];
 
 export default function App() {
@@ -134,6 +131,11 @@ export default function App() {
           <Route
             path="/cxc/reportes/matriz-recaudacion"
             element={<MatrizRecaudacionPage />}
+          />
+
+          <Route
+            path="/integracion/cola"
+            element={<IntegracionColaPage />}
           />
 
           {routeDefinitions.map(
