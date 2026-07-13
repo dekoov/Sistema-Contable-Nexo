@@ -107,8 +107,10 @@ public class AuthResource {
         responseData.put("rol", usuario.getRol());
         
         // Obtiene automáticamente el puerto por el que entró la petición HTTP
+        String instanciaId = System.getenv("INSTANCE_ID");
         int puertoActivo = uriInfo.getBaseUri().getPort();
-        responseData.put("instancia", "Instancia-Payara-" + puertoActivo);
+
+        responseData.put("instancia", instanciaId != null ? instanciaId : "Instancia-Payara-" + puertoActivo);
         responseData.put("puerto", puertoActivo == -1 ? 80 : puertoActivo);
 
         return Response.ok(responseData).build();

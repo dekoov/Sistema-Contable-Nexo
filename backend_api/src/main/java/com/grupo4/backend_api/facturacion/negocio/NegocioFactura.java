@@ -1,10 +1,15 @@
 package com.grupo4.backend_api.facturacion.negocio;
 
+import com.grupo4.backend_api.core.ApiException;
+import com.grupo4.backend_api.facturacion.modelo.CiudadEntrega;
+import com.grupo4.backend_api.facturacion.modelo.Cliente;
 import com.grupo4.backend_api.facturacion.modelo.FacturaCabecera;
 import com.grupo4.backend_api.facturacion.modelo.FacturaDetalle;
 import com.grupo4.backend_api.inventario.negocio.NegocioComprobante;
 import com.grupo4.backend_api.inventario.negocio.NegocioReporteInv;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 
 public class NegocioFactura {
@@ -17,19 +22,28 @@ public class NegocioFactura {
      * transacción,
      * solicita el descuento automático de existencias en el módulo de inventarios.
      */
+    @Transactional
     public int insertar(FacturaCabecera factura) {
         try {
+            Cliente clienteRef = em.find(Cliente.class, factura.getCliente().getIdCliente());
+            if (clienteRef == null) throw new ApiException(Status.BAD_REQUEST, "Cliente no existe: " + factura.getCliente().getIdCliente());
+            factura.setCliente(clienteRef);
+
+            CiudadEntrega ciudadRef = em.find(CiudadEntrega.class, factura.getCiudad().getIdCiudad());
+            if (ciudadRef == null) throw new ApiException(Status.BAD_REQUEST, "Ciudad no existe: " + factura.getCiudad().getIdCiudad());
+            factura.setCiudad(ciudadRef);
+
             em.persist(factura);
+
+            Integer siguienteIdDet = obtenerSiguienteIdDetalle();
             for (FacturaDetalle det : factura.getDetalles()) {
+                det.setIdFacturaDet(siguienteIdDet++);
                 det.setFactura(factura);
                 em.persist(det);
             }
-            NegocioComprobante negComprobante = new NegocioComprobante();
-            boolean egresoExitoso = negComprobante.registrarEgresoPorVenta(factura);
-            if (!egresoExitoso) {
-                System.out.println("Advertencia: La factura se guardó, pero hubo un error al descargar el inventario.");
-            }
             return 1;
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
@@ -197,6 +211,10 @@ public class NegocioFactura {
             e.printStackTrace();
             throw new RuntimeException("Error interno al verificar las existencias en inventario.");
         }
+    }
+
+    private Integer obtenerSiguienteIdDetalleParaFila(FacturaDetalle det) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }
