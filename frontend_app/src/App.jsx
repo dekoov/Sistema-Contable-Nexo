@@ -5,6 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import ClientesPage from "./pages/facturacion/ClientesPage";
 import CiudadesPage from "./pages/facturacion/CiudadesPage";
+import FacturasPage from "./pages/facturacion/FacturasPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
 import CobradoresPage from "./pages/cxc/CobradoresPage";
@@ -25,11 +26,7 @@ const routeDefinitions = [
     "Ciudades de entrega",
     "Mantenimiento de ciudades de entrega.",
   ],
-  [
-    "/facturacion/facturas",
-    "Facturas",
-    "Pantalla cabecera-detalle de facturación.",
-  ],
+
   [
     "/facturacion/reportes/ventas-ciudad",
     "Ventas por ciudad",
@@ -105,6 +102,11 @@ export default function App() {
           <Route
             path="/facturacion/ciudades"
             element={<CiudadesPage />}
+          />
+
+          <Route
+            path="/facturacion/facturas"
+            element={<FacturasPage />}
           />
 
           <Route
