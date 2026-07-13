@@ -161,9 +161,16 @@ public class NegocioComprobante {
      */
     @Transactional
     public boolean registrarEgresoDesdeEvento(FacturaCreadaEventDTO evento) {
-        TipoMovimiento tipoVenta = em.find(TipoMovimiento.class, BigDecimal.ONE);
-        if (tipoVenta == null) {
-            System.out.println("ERROR INVENTARIO: no existe TipoMovimiento ID 1 (Egreso/Venta).");
+        TipoMovimiento tipoVenta = null;
+        try {
+            tipoVenta = em.createQuery(
+                    "SELECT t FROM TipoMovimiento t WHERE t.tipo = :tipo", TipoMovimiento.class)
+                    // CAMBIO CRÍTICO: Usar comillas simples 'E' para pasar un Character en lugar de un String "E"
+                    .setParameter("tipo", 'E') 
+                    .setMaxResults(1)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            System.out.println("ERROR INVENTARIO: No existe un TipoMovimiento configurado con tipo = 'E' (Egreso/Venta).");
             return false;
         }
 
@@ -174,7 +181,7 @@ public class NegocioComprobante {
         ComprobanteCabecera cabecera = new ComprobanteCabecera();
         cabecera.setIdComprobante(idCabecera);
         cabecera.setNumeroComprobante("VEN-" + evento.getIdFactura());
-        cabecera.setFecha(Date.from(LocalDate.parse(evento.getFecha())
+        cabecera.setFecha(Date.from(LocalDate.parse(evento.getFecha().substring(0, 10)) // Asegurar formato ISO_DATE por si llega con hora
                 .atStartOfDay(ZoneId.systemDefault()).toInstant()));
         cabecera.setIdTipoMovimiento(tipoVenta);
 
@@ -186,6 +193,7 @@ public class NegocioComprobante {
         for (FacturaDetalleEventDTO detEvento : evento.getDetalles()) {
             BigDecimal idArticuloConvertido = BigDecimal.valueOf(detEvento.getIdArticulo());
             Articulo articulo = em.find(Articulo.class, idArticuloConvertido);
+            
             if (articulo == null) {
                 System.out.println("ERROR INVENTARIO: artículo ID " + idArticuloConvertido + " no existe.");
                 return false;
@@ -197,11 +205,13 @@ public class NegocioComprobante {
             detInv.setIdArticulo(articulo);
             detInv.setCantidad(BigInteger.valueOf(detEvento.getCantidad()));
             detInv.setPrecio(BigDecimal.valueOf(detEvento.getPrecio()));
+            
             listaDetalles.add(detInv);
         }
-
+        
         cabecera.setComprobanteDetalleCollection(listaDetalles);
         em.persist(cabecera);
+        
         System.out.println("INVENTARIO: egreso por venta (factura " + evento.getIdFactura() + ") registrado vía cola.");
         return true;
     }

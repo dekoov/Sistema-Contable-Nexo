@@ -25,6 +25,7 @@ public class NegocioFactura {
     @Transactional
     public int insertar(FacturaCabecera factura) {
         try {
+            // 1. Validar y asociar referencias externas
             Cliente clienteRef = em.find(Cliente.class, factura.getCliente().getIdCliente());
             if (clienteRef == null) throw new ApiException(Status.BAD_REQUEST, "Cliente no existe: " + factura.getCliente().getIdCliente());
             factura.setCliente(clienteRef);
@@ -33,14 +34,26 @@ public class NegocioFactura {
             if (ciudadRef == null) throw new ApiException(Status.BAD_REQUEST, "Ciudad no existe: " + factura.getCiudad().getIdCiudad());
             factura.setCiudad(ciudadRef);
 
+            // 2. Asignar ID manual a la cabecera (Si no estás usando IDENTITY todavía)
+            if (factura.getIdFactura() == null) {
+                factura.setIdFactura(obtenerSiguienteId());
+            }
+
+            // 3. Preparar los detalles ANTES del persist
+            if (factura.getDetalles() != null && !factura.getDetalles().isEmpty()) {
+                Integer siguienteIdDet = obtenerSiguienteIdDetalle();
+                for (FacturaDetalle det : factura.getDetalles()) {
+                    // Asignar ID manual al detalle
+                    det.setIdFacturaDet(siguienteIdDet++);
+                    
+                    // CRÍTICO: Establecer la relación bidireccional para que JPA mapee el FK (ID_FACTURA)
+                    det.setFactura(factura); 
+                }
+            }
+
+            // 4. Persistir el grafo completo de una sola vez. La cascada se encargará de los detalles.
             em.persist(factura);
 
-            Integer siguienteIdDet = obtenerSiguienteIdDetalle();
-            for (FacturaDetalle det : factura.getDetalles()) {
-                det.setIdFacturaDet(siguienteIdDet++);
-                det.setFactura(factura);
-                em.persist(det);
-            }
             return 1;
         } catch (ApiException e) {
             throw e;
@@ -54,6 +67,7 @@ public class NegocioFactura {
      * Elimina una factura y remueve sus detalles asociados antes de dar de baja la
      * cabecera.
      */
+    @Transactional
     public int eliminar(Integer idFactura) {
         try {
             FacturaCabecera f = em.find(FacturaCabecera.class, idFactura);
@@ -76,6 +90,7 @@ public class NegocioFactura {
     /**
      * Elimina de forma aislada un ítem específico del detalle de una factura.
      */
+    @Transactional
     public int eliminarDetalle(Integer idDetalle) {
         try {
             FacturaDetalle det = em.find(FacturaDetalle.class, idDetalle);
@@ -91,6 +106,7 @@ public class NegocioFactura {
     /**
      * Modifica los valores de cantidad y precio de un detalle existente.
      */
+    @Transactional
     public int modificarDetalle(FacturaDetalle detalle) {
         try {
             FacturaDetalle det = em.find(FacturaDetalle.class, detalle.getIdFacturaDet());

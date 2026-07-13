@@ -44,7 +44,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Crear nuevo:**
   ```bash
   curl -X POST http://localhost:8080/api/cobradores \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{"idCobrador": 1, "cedula": "1712345678", "nombre": "Juan Perez", "direccion": "Quito Norte"}'
   ```
@@ -58,7 +58,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Crear nueva:**
   ```bash
   curl -X POST http://localhost:8080/api/formas-pago \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{"codigo": 1, "nombre": "Efectivo"}'
   ```
@@ -76,7 +76,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Crear:**
   ```bash
   curl -X POST http://localhost:8080/api/ciudades \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{"idCiudad": 1, "nombre": "Quito"}'
   ```
@@ -102,7 +102,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Crear Factura (Dispara evento JMS):**
   ```bash
   curl -X POST http://localhost:8080/api/facturas \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{
          "idFactura": 100,
@@ -130,7 +130,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Crear artículo:**
   ```bash
   curl -X POST http://localhost:8080/api/articulos \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{"idArticulo": 1, "nombre": "Laptop Pro", "precio": 1200.00}'
   ```
@@ -146,7 +146,7 @@ curl -X GET http://localhost:8080/api/jakartaee11
 - **Registrar Transacción (Ingreso/Egreso):**
   ```bash
   curl -X POST http://localhost:8080/api/comprobantes \
-       -H "Authorization: Bearer {TOKEN}" \
+       
        -H "Content-Type: application/json" \
        -d '{
          "cabecera": {
