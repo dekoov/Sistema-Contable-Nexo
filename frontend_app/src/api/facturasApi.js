@@ -4,7 +4,7 @@ import {  publicarFacturaEnColaMock,} from "./integracionApi";
 const MOCK_STORAGE_KEY = "nexo_mock_facturas";
 
 const USE_MOCK_API =
-  import.meta.env.VITE_USE_MOCK_API !== "false";
+  import.meta.env.VITE_USE_MOCK_API === "true";
 
 function esperar(milliseconds = 250) {
   return new Promise((resolve) => {

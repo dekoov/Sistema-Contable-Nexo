@@ -3,7 +3,7 @@ import { listarArticulos } from "./articulosApi";
 import { listarComprobantes } from "./comprobantesApi";
 
 const USE_MOCK_API =
-  import.meta.env.VITE_USE_MOCK_API !== "false";
+  import.meta.env.VITE_USE_MOCK_API === "true";
 
 function extraerData(response) {
   const body = response.data;

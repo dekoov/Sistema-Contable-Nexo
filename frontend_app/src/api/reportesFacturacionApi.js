@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 import { listarFacturas } from "./facturasApi";
 
 const USE_MOCK_API =
-  import.meta.env.VITE_USE_MOCK_API !== "false";
+  import.meta.env.VITE_USE_MOCK_API === "true";
 
 function extraerData(response) {
   const body = response.data;
