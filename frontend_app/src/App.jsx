@@ -7,6 +7,7 @@ import ClientesPage from "./pages/facturacion/ClientesPage";
 import CiudadesPage from "./pages/facturacion/CiudadesPage";
 import ArticulosPage from "./pages/inventario/ArticulosPage";
 import TiposMovimientoPage from "./pages/inventario/TiposMovimientoPage";
+import CobradoresPage from "./pages/cxc/CobradoresPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -52,11 +53,7 @@ const routeDefinitions = [
     "Reporte de movimientos por fechas.",
   ],
 
-  [
-    "/cxc/cobradores",
-    "Cobradores",
-    "Mantenimiento de cobradores.",
-  ],
+
   [
     "/cxc/formas-pago",
     "Formas de pago",
@@ -121,6 +118,11 @@ export default function App() {
           <Route
             path="/inventario/tipos-movimiento"
             element={<TiposMovimientoPage />}
+          />
+
+          <Route
+            path="/cxc/cobradores"
+            element={<CobradoresPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
