@@ -15,6 +15,7 @@ import MovimientosInventarioPage from "./pages/inventario/reportes/MovimientosIn
 import CobradoresPage from "./pages/cxc/CobradoresPage";
 import FormasPagoPage from "./pages/cxc/FormasPagoPage";
 import PagosPage from "./pages/cxc/PagosPage";
+import EstadoCuentaPage from "./pages/cxc/reportes/EstadoCuentaPage";
 import ModulePlaceholderPage from "./pages/common/ModulePlaceholderPage";
 import ForbiddenPage from "./pages/common/ForbiddenPage";
 import NotFoundPage from "./pages/common/NotFoundPage";
@@ -33,12 +34,6 @@ const routeDefinitions = [
   ],
 
 
-
-  [
-    "/cxc/reportes/estado-cuenta",
-    "Estado de cuenta",
-    "Reporte de saldos por factura.",
-  ],
   [
     "/cxc/reportes/matriz-recaudacion",
     "Matriz de recaudación",
@@ -128,6 +123,11 @@ export default function App() {
           <Route
             path="/cxc/pagos"
             element={<PagosPage />}
+          />
+
+          <Route
+            path="/cxc/reportes/estado-cuenta"
+            element={<EstadoCuentaPage />}
           />
 
           {routeDefinitions.map(([path, title, description]) => {
