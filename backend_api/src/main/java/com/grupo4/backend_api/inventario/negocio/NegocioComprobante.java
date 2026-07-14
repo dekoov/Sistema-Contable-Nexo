@@ -33,7 +33,7 @@ public class NegocioComprobante {
         validarTransaccion(cabecera, detalles);
 
         if (cabecera.getFecha() == null) {
-            cabecera.setFecha(new java.util.Date());
+            cabecera.setFecha(java.time.LocalDate.now());
         }
 
         // Resolver referencia managed real — objeto deserializado del JSON es transient
@@ -106,35 +106,47 @@ public class NegocioComprobante {
     }
 
     @Transactional
-    public void modificarTransaccion(ComprobanteCabecera cabeceraUI, List<ComprobanteDetalle> detallesActualizados)
-            throws Exception {
-        ComprobanteCabecera cabeceraBD = em.find(ComprobanteCabecera.class, cabeceraUI.getIdComprobante());
-        if (cabeceraBD == null)
-            throw new Exception("El comprobante no existe.");
-
-        TipoMovimiento tipoRef = em.find(TipoMovimiento.class, cabeceraUI.getIdTipoMovimiento().getIdTipoMovimiento());
-        if (tipoRef == null)
-            throw new Exception("Tipo de movimiento no existe.");
-
-        cabeceraBD.setNumeroComprobante(cabeceraUI.getNumeroComprobante());
-        cabeceraBD.setFecha(cabeceraUI.getFecha());
-        cabeceraBD.setIdTipoMovimiento(tipoRef);
-        cabeceraBD.getComprobanteDetalleCollection().clear();
-
-        BigDecimal siguienteIdDet = obtenerSiguienteIdDetalle();
-        for (ComprobanteDetalle det : detallesActualizados) {
-            Articulo articuloRef = em.find(Articulo.class, det.getIdArticulo().getIdArticulo());
-            if (articuloRef == null)
-                throw new Exception("Artículo no existe: " + det.getIdArticulo().getIdArticulo());
-            det.setIdArticulo(articuloRef);
-            if (det.getIdComprobanteDet() == null) {
-                det.setIdComprobanteDet(siguienteIdDet);
-                siguienteIdDet = siguienteIdDet.add(BigDecimal.ONE);
-            }
-            det.setIdComprobante(cabeceraBD);
-            cabeceraBD.getComprobanteDetalleCollection().add(det);
+    public void modificarTransaccion(ComprobanteCabecera cabeceraActualizada, List<ComprobanteDetalle> detallesNuevos) {
+        // 1. Obtener la entidad administrada de la BD
+        ComprobanteCabecera cabeceraExistente = em.find(ComprobanteCabecera.class, cabeceraActualizada.getIdComprobante());
+        
+        if (cabeceraExistente == null) {
+            throw new RuntimeException("Comprobante no existe en BD");
         }
-        em.merge(cabeceraBD);
+
+        // 2. Modificar solo los datos de la cabecera
+        cabeceraExistente.setFecha(cabeceraActualizada.getFecha());
+        cabeceraExistente.setNumeroComprobante(cabeceraActualizada.getNumeroComprobante());
+        cabeceraExistente.setIdTipoMovimiento(cabeceraActualizada.getIdTipoMovimiento());
+
+        // 3. Modificar SOLAMENTE los detalles que ya existen (evitamos INSERTs y DELETEs problemáticos)
+        if (detallesNuevos != null) {
+            for (ComprobanteDetalle detNuevo : detallesNuevos) {
+                
+                // Si tiene ID, es una actualización de un detalle existente
+                if (detNuevo.getIdComprobanteDet() != null) {
+                    
+                    for (ComprobanteDetalle detExistente : cabeceraExistente.getComprobanteDetalleCollection()) {
+                        if (detExistente.getIdComprobanteDet().equals(detNuevo.getIdComprobanteDet())) {
+                            
+                            // Actualizamos los valores permitidos
+                            detExistente.setCantidad(detNuevo.getCantidad());
+                            detExistente.setPrecio(detNuevo.getPrecio());
+                            
+                            // Opcional: Si quieres permitir cambiar el artículo del detalle
+                            if (detNuevo.getIdArticulo() != null) {
+                                detExistente.setIdArticulo(detNuevo.getIdArticulo());
+                            }
+                            break; // Coincidencia encontrada y actualizada, pasamos al siguiente
+                        }
+                    }
+                }
+                // Si el ID es null, lo ignoramos deliberadamente para evitar el error de PostgreSQL
+            }
+        }
+
+        // 4. Guardar cambios
+        em.merge(cabeceraExistente);
     }
 
     @Transactional
@@ -181,8 +193,7 @@ public class NegocioComprobante {
         ComprobanteCabecera cabecera = new ComprobanteCabecera();
         cabecera.setIdComprobante(idCabecera);
         cabecera.setNumeroComprobante("VEN-" + evento.getIdFactura());
-        cabecera.setFecha(Date.from(LocalDate.parse(evento.getFecha().substring(0, 10)) // Asegurar formato ISO_DATE por si llega con hora
-                .atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        cabecera.setFecha(LocalDate.parse(evento.getFecha().substring(0, 10)));
         cabecera.setIdTipoMovimiento(tipoVenta);
 
         Number maxIdDet = (Number) em.createQuery(

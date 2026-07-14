@@ -1,145 +1,101 @@
 package com.grupo4.backend_api.cobranzas.negocio;
 
+import com.grupo4.backend_api.cobranzas.modelo.Cobrador;
+import com.grupo4.backend_api.cobranzas.modelo.FormaPago;
 import com.grupo4.backend_api.cobranzas.modelo.PagoDetalle;
+import com.grupo4.backend_api.core.ApiException;
+import com.grupo4.backend_api.facturacion.modelo.FacturaCabecera;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 
+@RequestScoped
 public class NegocioPagoDetalle {
 
-    private static final String PU = "SistemaContablePU";
+    @PersistenceContext(unitName = "SistemaContablePU")
+    private EntityManager em;
 
-    public int insertar(PagoDetalle pagoDetalle) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        EntityTransaction tx = null;
+    @Transactional
+    public int insertar(Integer idFactura, PagoDetalle pagoDetalle) {
         try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em  = emf.createEntityManager();
-            tx  = em.getTransaction();
-            tx.begin();
+            FacturaCabecera factura = em.find(FacturaCabecera.class, idFactura);
+            if (factura == null) throw new ApiException(Status.BAD_REQUEST, "Factura no existe: " + idFactura);
+            pagoDetalle.setFactura(factura);
 
+            Cobrador cobradorRef = em.find(Cobrador.class, pagoDetalle.getCobrador().getIdCobrador());
+            if (cobradorRef == null) throw new ApiException(Status.BAD_REQUEST, "Cobrador no existe: " + pagoDetalle.getCobrador().getIdCobrador());
+            pagoDetalle.setCobrador(cobradorRef);
+
+            FormaPago formaPagoRef = em.find(FormaPago.class, pagoDetalle.getFormaPago().getCodigo());
+            if (formaPagoRef == null) throw new ApiException(Status.BAD_REQUEST, "Forma de pago no existe: " + pagoDetalle.getFormaPago().getCodigo());
+            pagoDetalle.setFormaPago(formaPagoRef);
 
             if (pagoDetalle.getIdPagoDetalle() == null) {
                 pagoDetalle.setIdPagoDetalle(obtenerSiguienteId());
             }
 
             em.persist(pagoDetalle);
-
-
-
-            tx.commit();
             return 1;
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
-            if (tx != null && tx.isActive()) tx.rollback();
             e.printStackTrace();
             return -1;
-        } finally {
-            if (em  != null) em.close();
-            if (emf != null) emf.close();
         }
     }
 
+    @Transactional
     public int eliminar(Integer idPagoDetalle) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        EntityTransaction tx = null;
         try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em  = emf.createEntityManager();
-            tx  = em.getTransaction();
-            tx.begin();
             PagoDetalle pd = em.find(PagoDetalle.class, idPagoDetalle);
-            if (pd != null) {
-                em.remove(pd);
-            }
-            tx.commit();
+            if (pd != null) em.remove(pd);
             return 1;
         } catch (Exception e) {
-            if (tx != null && tx.isActive()) tx.rollback();
             e.printStackTrace();
             return -1;
-        } finally {
-            if (em  != null) em.close();
-            if (emf != null) emf.close();
         }
     }
 
+    @Transactional
+    public int modificar(PagoDetalle pagoDetalle) {
+        try {
+            PagoDetalle pd = em.find(PagoDetalle.class, pagoDetalle.getIdPagoDetalle());
+            if (pd == null) return 0;
+            pd.setFechaPago(pagoDetalle.getFechaPago());
+            pd.setValor(pagoDetalle.getValor());
+            em.merge(pd);
+            return 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 
     public List<PagoDetalle> listarPorFactura(Integer idFactura) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em  = emf.createEntityManager();
-            return em.createQuery(
-                            "SELECT p FROM PagoDetalle p WHERE p.factura.idFactura = :idFactura ORDER BY p.fechaPago DESC",
-                            PagoDetalle.class)
-                    .setParameter("idFactura", idFactura)
-                    .getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (em  != null) em.close();
-            if (emf != null) emf.close();
-        }
-    }
-
-
-    public Integer obtenerSiguienteId() {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em  = emf.createEntityManager();
-            Number max = (Number) em.createQuery(
-                            "SELECT COALESCE(MAX(p.idPagoDetalle), 0) FROM PagoDetalle p")
-                    .getSingleResult();
-            return max.intValue() + 1;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 1;
-        } finally {
-            if (em  != null) em.close();
-            if (emf != null) emf.close();
-        }
+        return em.createQuery(
+                "SELECT p FROM PagoDetalle p WHERE p.factura.idFactura = :idFactura ORDER BY p.fechaPago DESC",
+                PagoDetalle.class)
+                .setParameter("idFactura", idFactura)
+                .getResultList();
     }
 
     public PagoDetalle buscar(Integer idPagoDetalle) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em = emf.createEntityManager();
-            return em.find(PagoDetalle.class, idPagoDetalle);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (em != null) em.close();
-            if (emf != null) emf.close();
-        }
+        return em.find(PagoDetalle.class, idPagoDetalle);
     }
+    
+    public List<PagoDetalle> listarTodos() {
+    return em.createQuery(
+            "SELECT p FROM PagoDetalle p ORDER BY p.fechaPago DESC",
+            PagoDetalle.class)
+            .getResultList();
+}
 
-    public int modificar(PagoDetalle pagoDetalle) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        EntityTransaction tx = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em = emf.createEntityManager();
-            tx = em.getTransaction();
-            tx.begin();
-            em.merge(pagoDetalle);
-            tx.commit();
-            return 1;
-        } catch (Exception e) {
-            if (tx != null && tx.isActive()) tx.rollback();
-            e.printStackTrace();
-            return -1;
-        } finally {
-            if (em != null) em.close();
-            if (emf != null) emf.close();
-        }
+    public Integer obtenerSiguienteId() {
+        Number max = (Number) em.createQuery(
+                "SELECT COALESCE(MAX(p.idPagoDetalle), 0) FROM PagoDetalle p")
+                .getSingleResult();
+        return max.intValue() + 1;
     }
 }

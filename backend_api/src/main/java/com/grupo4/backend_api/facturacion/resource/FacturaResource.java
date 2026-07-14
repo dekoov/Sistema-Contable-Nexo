@@ -34,8 +34,6 @@ public class FacturaResource {
     @Inject private NegocioFactura negocioFactura;
     @Inject private FacturaEventPublisher eventPublisher;
 
-    private static final SimpleDateFormat ISO = new SimpleDateFormat("yyyy-MM-dd");
-
     @GET
     @Path("/{id}")
     public Response buscar(@PathParam("id") Integer id) {
@@ -78,9 +76,14 @@ public class FacturaResource {
                         det.getIdArticulo(), det.getCantidad(), det.getPrecio()));
             }
         }
+        
+        String fechaEvento = (factura.getFecha() != null) ? factura.getFecha().toString() : null;
+        
         FacturaCreadaEventDTO evento = new FacturaCreadaEventDTO(
-                factura.getIdFactura(), factura.getNumeroFactura(),
-                ISO.format(factura.getFecha()), detallesEvento);
+                factura.getIdFactura(), 
+                factura.getNumeroFactura(),
+                fechaEvento,
+                detallesEvento);
         eventPublisher.publicarFacturaCreada(evento);
 
         return Response.status(Status.CREATED)

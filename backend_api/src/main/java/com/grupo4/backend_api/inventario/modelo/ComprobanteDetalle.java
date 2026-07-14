@@ -7,6 +7,8 @@ package com.grupo4.backend_api.inventario.modelo;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,14 +28,15 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "COMPROBANTE_DETALLE")
 @NamedQueries({
-    @NamedQuery(name = "ComprobanteDetalle.findAll", query = "SELECT c FROM ComprobanteDetalle c"),
-    @NamedQuery(name = "ComprobanteDetalle.findByIdComprobanteDet", query = "SELECT c FROM ComprobanteDetalle c WHERE c.idComprobanteDet = :idComprobanteDet"),
-    @NamedQuery(name = "ComprobanteDetalle.findByCantidad", query = "SELECT c FROM ComprobanteDetalle c WHERE c.cantidad = :cantidad"),
-    @NamedQuery(name = "ComprobanteDetalle.findByPrecio", query = "SELECT c FROM ComprobanteDetalle c WHERE c.precio = :precio")})
+        @NamedQuery(name = "ComprobanteDetalle.findAll", query = "SELECT c FROM ComprobanteDetalle c"),
+        @NamedQuery(name = "ComprobanteDetalle.findByIdComprobanteDet", query = "SELECT c FROM ComprobanteDetalle c WHERE c.idComprobanteDet = :idComprobanteDet"),
+        @NamedQuery(name = "ComprobanteDetalle.findByCantidad", query = "SELECT c FROM ComprobanteDetalle c WHERE c.cantidad = :cantidad"),
+        @NamedQuery(name = "ComprobanteDetalle.findByPrecio", query = "SELECT c FROM ComprobanteDetalle c WHERE c.precio = :precio") })
 public class ComprobanteDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    // @Max(value=?) @Min(value=?)//if you know range of your decimal fields
+    // consider using these annotations to enforce field validation
     @Id
     @Basic(optional = false)
     @Column(name = "ID_COMPROBANTE_DET")
@@ -96,6 +99,7 @@ public class ComprobanteDetalle implements Serializable {
         this.idArticulo = idArticulo;
     }
 
+    @JsonbTransient
     public ComprobanteCabecera getIdComprobante() {
         return idComprobante;
     }
@@ -118,7 +122,8 @@ public class ComprobanteDetalle implements Serializable {
             return false;
         }
         ComprobanteDetalle other = (ComprobanteDetalle) object;
-        if ((this.idComprobanteDet == null && other.idComprobanteDet != null) || (this.idComprobanteDet != null && !this.idComprobanteDet.equals(other.idComprobanteDet))) {
+        if ((this.idComprobanteDet == null && other.idComprobanteDet != null)
+                || (this.idComprobanteDet != null && !this.idComprobanteDet.equals(other.idComprobanteDet))) {
             return false;
         }
         return true;
@@ -130,7 +135,8 @@ public class ComprobanteDetalle implements Serializable {
     }
 
     public void setIdComprobanteDetalle(BigDecimal valueOf) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-    
+
 }

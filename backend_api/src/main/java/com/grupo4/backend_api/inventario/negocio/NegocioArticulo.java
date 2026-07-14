@@ -14,6 +14,9 @@ public class NegocioArticulo {
     @Transactional
     public int insertar(Articulo articulo) {
         try {
+            if (articulo.getIdArticulo() == null) {
+                articulo.setIdArticulo(obtenerSiguienteId());
+            }
             em.persist(articulo);
             return 1;
         } catch (Exception e) {
