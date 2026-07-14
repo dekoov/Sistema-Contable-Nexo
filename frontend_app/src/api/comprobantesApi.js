@@ -187,33 +187,28 @@ function obtenerSiguienteIdDetalle(comprobantes) {
 
 function construirPayload(comprobante) {
   return {
-    numeroComprobante:
-      comprobante.numeroComprobante.trim(),
-    fecha: comprobante.fecha,
-
-    idTipoMovimiento: {
-      idTipoMovimiento: Number(
-        comprobante.idTipoMovimiento
-          .idTipoMovimiento,
-      ),
-      nombre:
-        comprobante.idTipoMovimiento.nombre ??
-        "",
-      tipo:
-        comprobante.idTipoMovimiento.tipo ??
-        "",
+    cabecera: {
+      numeroComprobante:
+        comprobante.numeroComprobante.trim(),
+      fecha: comprobante.fecha,
+      idTipoMovimiento: {
+        idTipoMovimiento: Number(
+          comprobante.idTipoMovimiento
+            .idTipoMovimiento,
+        ),
+      },
     },
 
     detalles: comprobante.detalles.map(
       (detalle) => {
         const payloadDetalle = {
-          idArticulo: Number(
-            detalle.idArticulo,
-          ),
+          idArticulo: {
+            idArticulo: Number(
+              detalle.idArticulo,
+            ),
+          },
           cantidad: Number(detalle.cantidad),
           precio: Number(detalle.precio),
-          nombreArticulo:
-            detalle.nombreArticulo ?? "",
         };
 
         if (detalle.idComprobanteDet) {
@@ -283,12 +278,12 @@ export async function crearComprobante(
     const numeroRepetido = comprobantes.some(
       (item) =>
         item.numeroComprobante.toLowerCase() ===
-        payload.numeroComprobante.toLowerCase(),
+        payload.cabecera.numeroComprobante.toLowerCase(),
     );
 
     if (numeroRepetido) {
       throw crearErrorMock(
-        `Ya existe el comprobante "${payload.numeroComprobante}".`,
+        `Ya existe el comprobante "${payload.cabecera.numeroComprobante}".`,
         409,
       );
     }
@@ -320,8 +315,8 @@ export async function crearComprobante(
       idComprobante:
         siguienteIdComprobante,
       numeroComprobante:
-        payload.numeroComprobante,
-      fecha: payload.fecha,
+        payload.cabecera.numeroComprobante,
+      fecha: payload.cabecera.fecha,
       idTipoMovimiento:
         comprobante.idTipoMovimiento,
       detalles: detallesConId,
@@ -380,14 +375,14 @@ export async function actualizarComprobante(
     const numeroRepetido = comprobantes.some(
       (item) =>
         item.numeroComprobante.toLowerCase() ===
-          payload.numeroComprobante.toLowerCase() &&
+          payload.cabecera.numeroComprobante.toLowerCase() &&
         Number(item.idComprobante) !==
           idNumerico,
     );
 
     if (numeroRepetido) {
       throw crearErrorMock(
-        `Ya existe otro comprobante llamado "${payload.numeroComprobante}".`,
+        `Ya existe otro comprobante llamado "${payload.cabecera.numeroComprobante}".`,
         409,
       );
     }
@@ -416,8 +411,8 @@ export async function actualizarComprobante(
     const comprobanteActualizado = {
       idComprobante: idNumerico,
       numeroComprobante:
-        payload.numeroComprobante,
-      fecha: payload.fecha,
+        payload.cabecera.numeroComprobante,
+      fecha: payload.cabecera.fecha,
       idTipoMovimiento:
         comprobante.idTipoMovimiento,
       detalles: detallesActualizados,

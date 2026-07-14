@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { authenticateWithGoogle } from "../api/authApi";
+import { authenticateWithGoogle, authenticateWithPassword } from "../api/authApi";
 
 const AuthContext = createContext(null);
 
@@ -28,6 +28,25 @@ export function AuthProvider({ children }) {
 
     try {
       const data = await authenticateWithGoogle(credential);
+      const accessToken = data.accessToken ?? data.token;
+      const authenticatedUser = data.user;
+
+      if (!accessToken || !authenticatedUser) {
+        throw new Error("El backend no devolvió accessToken y user.");
+      }
+
+      saveSession(accessToken, authenticatedUser);
+      return authenticatedUser;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithPassword = async (email, password) => {
+    setLoading(true);
+
+    try {
+      const data = await authenticateWithPassword(email, password);
       const accessToken = data.accessToken ?? data.token;
       const authenticatedUser = data.user;
 
@@ -78,6 +97,7 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: Boolean(user),
       loginWithGoogle,
+      loginWithPassword,
       loginMock,
       logout,
     }),

@@ -17,7 +17,8 @@ import {
 } from "../../api/usuariosApi";
 
 const FORMULARIO_INICIAL = {
-  username: "",
+  email: "",
+  nombre: "",
   rol: "USER",
 };
 
@@ -182,7 +183,8 @@ export default function UsuariosPage() {
     );
 
     setFormulario({
-      username: usuario.username,
+      email: usuario.email || usuario.username || "",
+      nombre: usuario.nombre || "",
       rol: normalizarRol(usuario.rol),
     });
 
@@ -195,19 +197,15 @@ export default function UsuariosPage() {
   }
 
   function validarFormulario() {
-    const username =
-      formulario.username.trim();
+    const email = formulario.email.trim();
+    const nombre = formulario.nombre.trim();
 
-    if (!username) {
-      return "El nombre de usuario o correo es obligatorio.";
+    if (!email) {
+      return "El email es obligatorio.";
     }
 
-    if (username.length < 3) {
-      return "El identificador debe contener al menos 3 caracteres.";
-    }
-
-    if (username.length > 50) {
-      return "El identificador no puede superar los 50 caracteres.";
+    if (!nombre) {
+      return "El nombre es obligatorio.";
     }
 
     if (
@@ -490,30 +488,49 @@ export default function UsuariosPage() {
                 <div className="mb-3">
                   <label
                     className="form-label"
-                    htmlFor="username"
+                    htmlFor="email"
                   >
-                    Usuario o correo OAuth
+                    Email
                   </label>
 
                   <input
-                    id="username"
-                    name="username"
-                    type="text"
+                    id="email"
+                    name="email"
+                    type="email"
                     className="form-control"
                     value={
-                      formulario.username
+                      formulario.email
                     }
                     onChange={actualizarCampo}
-                    maxLength={50}
+                    maxLength={100}
                     placeholder="usuario@correo.com"
                     disabled={guardando}
                     required
                   />
+                </div>
 
-                  <div className="form-text">
-                    Debe coincidir con la cuenta
-                    autorizada para iniciar sesión.
-                  </div>
+                <div className="mb-3">
+                  <label
+                    className="form-label"
+                    htmlFor="nombre"
+                  >
+                    Nombre
+                  </label>
+
+                  <input
+                    id="nombre"
+                    name="nombre"
+                    type="text"
+                    className="form-control"
+                    value={
+                      formulario.nombre
+                    }
+                    onChange={actualizarCampo}
+                    maxLength={100}
+                    placeholder="Ej. Juan Pérez"
+                    disabled={guardando}
+                    required
+                  />
                 </div>
 
                 <div className="mb-4">

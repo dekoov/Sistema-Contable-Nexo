@@ -55,6 +55,9 @@ function normalizarUsuario(usuario) {
       usuario.username ??
       usuario.email ??
       "",
+    
+    email: usuario.email ?? usuario.username ?? "",
+    nombre: usuario.nombre ?? "",
 
     rol: normalizarRol(
       usuario.rol ?? usuario.role,
@@ -257,7 +260,8 @@ export async function buscarUsuarios(valor) {
 
 export async function crearUsuario(usuario) {
   const payload = {
-    username: usuario.username.trim(),
+    email: (usuario.email ?? "").trim(),
+    nombre: (usuario.nombre ?? "").trim(),
     rol: normalizarRol(usuario.rol),
   };
 
@@ -266,15 +270,15 @@ export async function crearUsuario(usuario) {
 
     const usuarios = leerUsuariosMock();
 
-    const usernameRepetido = usuarios.some(
+    const emailRepetido = usuarios.some(
       (item) =>
         item.username.toLowerCase() ===
-        payload.username.toLowerCase(),
+        payload.email.toLowerCase(),
     );
 
-    if (usernameRepetido) {
+    if (emailRepetido) {
       throw crearErrorMock(
-        `Ya existe un usuario con el identificador "${payload.username}".`,
+        `Ya existe un usuario con el email "${payload.email}".`,
         409,
       );
     }
@@ -291,7 +295,8 @@ export async function crearUsuario(usuario) {
 
     const nuevoUsuario = {
       idUsuario: siguienteId,
-      username: payload.username,
+      username: payload.email,
+      nombre: payload.nombre,
       rol: payload.rol,
       fechaCreacion: obtenerFechaActual(),
     };
@@ -319,7 +324,8 @@ export async function actualizarUsuario(
   usuario,
 ) {
   const payload = {
-    username: usuario.username.trim(),
+    email: (usuario.email ?? "").trim(),
+    nombre: (usuario.nombre ?? "").trim(),
     rol: normalizarRol(usuario.rol),
   };
 
@@ -342,17 +348,17 @@ export async function actualizarUsuario(
       );
     }
 
-    const usernameRepetido = usuarios.some(
+    const emailRepetido = usuarios.some(
       (item) =>
         item.username.toLowerCase() ===
-          payload.username.toLowerCase() &&
+          payload.email.toLowerCase() &&
         Number(item.idUsuario) !==
           idNumerico,
     );
 
-    if (usernameRepetido) {
+    if (emailRepetido) {
       throw crearErrorMock(
-        `Ya existe otro usuario con el identificador "${payload.username}".`,
+        `Ya existe otro usuario con el email "${payload.email}".`,
         409,
       );
     }
@@ -376,7 +382,8 @@ export async function actualizarUsuario(
 
     const usuarioActualizado = {
       ...usuarioActual,
-      username: payload.username,
+      username: payload.email,
+      nombre: payload.nombre,
       rol: payload.rol,
     };
 

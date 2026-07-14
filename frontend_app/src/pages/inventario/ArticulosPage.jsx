@@ -27,7 +27,9 @@ function formatearFecha(fecha) {
     return "No registrada";
   }
 
-  const valor = new Date(fecha);
+  // Remove [UTC] or similar timezone brackets if present to ensure proper parsing
+  const fechaLimpia = String(fecha).replace(/\[UTC\]/g, "");
+  const valor = new Date(fechaLimpia);
 
   if (Number.isNaN(valor.getTime())) {
     return "No registrada";

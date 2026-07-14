@@ -34,6 +34,15 @@ export async function authenticateWithGoogle(idToken) {
   return normalizeAuthResponse(response.data);
 }
 
+export async function authenticateWithPassword(email, password) {
+  const response = await apiClient.post("/auth/login-password", {
+    email,
+    password,
+  });
+
+  return normalizeAuthResponse(response.data);
+}
+
 export async function authenticateAsDevelopmentAdmin() {
   const response = await apiClient.post("/auth/login", {
     idToken: "test-admin",

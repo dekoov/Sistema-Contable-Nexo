@@ -33,13 +33,30 @@ export default function LoginPage() {
   const buttonRef = useRef(null);
   const renderedRef = useRef(false);
   const [error, setError] = useState("");
-  const { isAuthenticated, loginWithGoogle, loginMock, loading } = useAuth();
+  const [localCreds, setLocalCreds] = useState({ email: "", password: "" });
+  const { isAuthenticated, loginWithGoogle, loginWithPassword, loginMock, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const destination = location.state?.from?.pathname || "/dashboard";
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const mockEnabled = import.meta.env.VITE_ENABLE_MOCK_LOGIN === "true";
+
+  const handleLocalLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await loginWithPassword(localCreds.email, localCreds.password);
+      navigate(destination, { replace: true });
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          requestError.message ||
+          "Credenciales inválidas o error al intentar conectar.",
+      );
+    }
+  };
 
   useEffect(() => {
     if (!googleClientId || googleClientId.startsWith("REEMPLAZAR_")) {
@@ -78,7 +95,7 @@ export default function LoginPage() {
           text: "signin_with",
           shape: "rectangular",
           logo_alignment: "left",
-          width: 320,
+          width: "100%",
           locale: "es",
         });
 
@@ -115,12 +132,39 @@ export default function LoginPage() {
 
         <div className="my-4">
           <h2 className="h4">Iniciar sesión</h2>
-          <p className="text-secondary">
-            Accede mediante un proveedor OAuth autorizado.
-          </p>
         </div>
 
         {error && <div className="alert alert-warning">{error}</div>}
+
+        <form onSubmit={handleLocalLogin} className="mb-4">
+          <div className="mb-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Email o usuario"
+              required
+              value={localCreds.email}
+              onChange={(e) => setLocalCreds({...localCreds, email: e.target.value})}
+              disabled={loading}
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Contraseña"
+              required
+              value={localCreds.password}
+              onChange={(e) => setLocalCreds({...localCreds, password: e.target.value})}
+              disabled={loading}
+            />
+          </div>
+          <button className="btn btn-primary w-100" type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar con contraseña"}
+          </button>
+        </form>
+
+        <div className="text-center my-3 text-secondary">o</div>
 
         <div
           ref={buttonRef}
