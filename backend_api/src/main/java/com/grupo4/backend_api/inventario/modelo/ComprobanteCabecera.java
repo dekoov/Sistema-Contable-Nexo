@@ -24,7 +24,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-
+import java.time.LocalDate;
 
 /**
  *
@@ -33,14 +33,15 @@ import jakarta.persistence.TemporalType;
 @Entity
 @Table(name = "COMPROBANTE_CABECERA")
 @NamedQueries({
-    @NamedQuery(name = "ComprobanteCabecera.findAll", query = "SELECT c FROM ComprobanteCabecera c"),
-    @NamedQuery(name = "ComprobanteCabecera.findByIdComprobante", query = "SELECT c FROM ComprobanteCabecera c WHERE c.idComprobante = :idComprobante"),
-    @NamedQuery(name = "ComprobanteCabecera.findByNumeroComprobante", query = "SELECT c FROM ComprobanteCabecera c WHERE c.numeroComprobante = :numeroComprobante"),
-    @NamedQuery(name = "ComprobanteCabecera.findByFecha", query = "SELECT c FROM ComprobanteCabecera c WHERE c.fecha = :fecha")})
+        @NamedQuery(name = "ComprobanteCabecera.findAll", query = "SELECT c FROM ComprobanteCabecera c"),
+        @NamedQuery(name = "ComprobanteCabecera.findByIdComprobante", query = "SELECT c FROM ComprobanteCabecera c WHERE c.idComprobante = :idComprobante"),
+        @NamedQuery(name = "ComprobanteCabecera.findByNumeroComprobante", query = "SELECT c FROM ComprobanteCabecera c WHERE c.numeroComprobante = :numeroComprobante"),
+        @NamedQuery(name = "ComprobanteCabecera.findByFecha", query = "SELECT c FROM ComprobanteCabecera c WHERE c.fecha = :fecha") })
 public class ComprobanteCabecera implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    // @Max(value=?) @Min(value=?)//if you know range of your decimal fields
+    // consider using these annotations to enforce field validation
     @Id
     @Basic(optional = false)
     @Column(name = "ID_COMPROBANTE")
@@ -50,8 +51,7 @@ public class ComprobanteCabecera implements Serializable {
     private String numeroComprobante;
     @Basic(optional = false)
     @Column(name = "FECHA")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date fecha;
+    private LocalDate fecha;
     @JoinColumn(name = "ID_TIPO_MOVIMIENTO", referencedColumnName = "ID_TIPO_MOVIMIENTO")
     @ManyToOne(optional = false)
     private TipoMovimiento idTipoMovimiento;
@@ -65,7 +65,7 @@ public class ComprobanteCabecera implements Serializable {
         this.idComprobante = idComprobante;
     }
 
-    public ComprobanteCabecera(BigDecimal idComprobante, String numeroComprobante, Date fecha) {
+    public ComprobanteCabecera(BigDecimal idComprobante, String numeroComprobante, LocalDate fecha) {
         this.idComprobante = idComprobante;
         this.numeroComprobante = numeroComprobante;
         this.fecha = fecha;
@@ -87,11 +87,11 @@ public class ComprobanteCabecera implements Serializable {
         this.numeroComprobante = numeroComprobante;
     }
 
-    public Date getFecha() {
+    public LocalDate getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
 
@@ -103,7 +103,6 @@ public class ComprobanteCabecera implements Serializable {
         this.idTipoMovimiento = idTipoMovimiento;
     }
 
-    @JsonbTransient
     public Collection<ComprobanteDetalle> getComprobanteDetalleCollection() {
         return comprobanteDetalleCollection;
     }
@@ -126,7 +125,8 @@ public class ComprobanteCabecera implements Serializable {
             return false;
         }
         ComprobanteCabecera other = (ComprobanteCabecera) object;
-        if ((this.idComprobante == null && other.idComprobante != null) || (this.idComprobante != null && !this.idComprobante.equals(other.idComprobante))) {
+        if ((this.idComprobante == null && other.idComprobante != null)
+                || (this.idComprobante != null && !this.idComprobante.equals(other.idComprobante))) {
             return false;
         }
         return true;
@@ -136,5 +136,5 @@ public class ComprobanteCabecera implements Serializable {
     public String toString() {
         return "com.sistema.inventario.modelo.ComprobanteCabecera[ idComprobante=" + idComprobante + " ]";
     }
-    
+
 }

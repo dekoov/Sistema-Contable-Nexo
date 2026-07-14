@@ -2,6 +2,7 @@ package com.grupo4.backend_api.inventario.negocio;
 
 import com.grupo4.backend_api.inventario.modelo.Articulo;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -10,8 +11,12 @@ public class NegocioArticulo {
     @PersistenceContext(unitName = "SistemaContablePU")
     private EntityManager em;
 
+    @Transactional
     public int insertar(Articulo articulo) {
         try {
+            if (articulo.getIdArticulo() == null) {
+                articulo.setIdArticulo(obtenerSiguienteId());
+            }
             em.persist(articulo);
             return 1;
         } catch (Exception e) {
@@ -19,7 +24,8 @@ public class NegocioArticulo {
             return -1;
         }
     }
-
+    
+    @Transactional
     public int modificar(Articulo articulo) {
         try {
             Articulo a = em.find(Articulo.class, articulo.getIdArticulo());
@@ -35,7 +41,8 @@ public class NegocioArticulo {
             return -1;
         }
     }
-
+    
+    @Transactional
     public int eliminar(BigDecimal idArticulo) {
         try {
             Articulo a = em.find(Articulo.class, idArticulo);

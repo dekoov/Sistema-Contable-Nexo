@@ -1,10 +1,15 @@
 package com.grupo4.backend_api.facturacion.negocio;
 
+import com.grupo4.backend_api.core.ApiException;
+import com.grupo4.backend_api.facturacion.modelo.CiudadEntrega;
+import com.grupo4.backend_api.facturacion.modelo.Cliente;
 import com.grupo4.backend_api.facturacion.modelo.FacturaCabecera;
 import com.grupo4.backend_api.facturacion.modelo.FacturaDetalle;
 import com.grupo4.backend_api.inventario.negocio.NegocioComprobante;
 import com.grupo4.backend_api.inventario.negocio.NegocioReporteInv;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 
 public class NegocioFactura {
@@ -17,19 +22,41 @@ public class NegocioFactura {
      * transacción,
      * solicita el descuento automático de existencias en el módulo de inventarios.
      */
+    @Transactional
     public int insertar(FacturaCabecera factura) {
         try {
+            // 1. Validar y asociar referencias externas
+            Cliente clienteRef = em.find(Cliente.class, factura.getCliente().getIdCliente());
+            if (clienteRef == null) throw new ApiException(Status.BAD_REQUEST, "Cliente no existe: " + factura.getCliente().getIdCliente());
+            factura.setCliente(clienteRef);
+
+            CiudadEntrega ciudadRef = em.find(CiudadEntrega.class, factura.getCiudad().getIdCiudad());
+            if (ciudadRef == null) throw new ApiException(Status.BAD_REQUEST, "Ciudad no existe: " + factura.getCiudad().getIdCiudad());
+            factura.setCiudad(ciudadRef);
+
+            // 2. Asignar ID manual a la cabecera (Si no estás usando IDENTITY todavía)
+            if (factura.getIdFactura() == null) {
+                factura.setIdFactura(obtenerSiguienteId());
+            }
+
+            // 3. Preparar los detalles ANTES del persist
+            if (factura.getDetalles() != null && !factura.getDetalles().isEmpty()) {
+                Integer siguienteIdDet = obtenerSiguienteIdDetalle();
+                for (FacturaDetalle det : factura.getDetalles()) {
+                    // Asignar ID manual al detalle
+                    det.setIdFacturaDet(siguienteIdDet++);
+                    
+                    // CRÍTICO: Establecer la relación bidireccional para que JPA mapee el FK (ID_FACTURA)
+                    det.setFactura(factura); 
+                }
+            }
+
+            // 4. Persistir el grafo completo de una sola vez. La cascada se encargará de los detalles.
             em.persist(factura);
-            for (FacturaDetalle det : factura.getDetalles()) {
-                det.setFactura(factura);
-                em.persist(det);
-            }
-            NegocioComprobante negComprobante = new NegocioComprobante();
-            boolean egresoExitoso = negComprobante.registrarEgresoPorVenta(factura);
-            if (!egresoExitoso) {
-                System.out.println("Advertencia: La factura se guardó, pero hubo un error al descargar el inventario.");
-            }
+
             return 1;
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
@@ -40,6 +67,7 @@ public class NegocioFactura {
      * Elimina una factura y remueve sus detalles asociados antes de dar de baja la
      * cabecera.
      */
+    @Transactional
     public int eliminar(Integer idFactura) {
         try {
             FacturaCabecera f = em.find(FacturaCabecera.class, idFactura);
@@ -62,6 +90,7 @@ public class NegocioFactura {
     /**
      * Elimina de forma aislada un ítem específico del detalle de una factura.
      */
+    @Transactional
     public int eliminarDetalle(Integer idDetalle) {
         try {
             FacturaDetalle det = em.find(FacturaDetalle.class, idDetalle);
@@ -77,6 +106,7 @@ public class NegocioFactura {
     /**
      * Modifica los valores de cantidad y precio de un detalle existente.
      */
+    @Transactional
     public int modificarDetalle(FacturaDetalle detalle) {
         try {
             FacturaDetalle det = em.find(FacturaDetalle.class, detalle.getIdFacturaDet());
@@ -197,6 +227,10 @@ public class NegocioFactura {
             e.printStackTrace();
             throw new RuntimeException("Error interno al verificar las existencias en inventario.");
         }
+    }
+
+    private Integer obtenerSiguienteIdDetalleParaFila(FacturaDetalle det) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }

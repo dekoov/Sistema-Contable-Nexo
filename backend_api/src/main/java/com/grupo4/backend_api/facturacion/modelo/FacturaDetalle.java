@@ -1,5 +1,6 @@
 package com.grupo4.backend_api.facturacion.modelo;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import java.io.Serializable;
 
@@ -24,7 +25,6 @@ public class FacturaDetalle implements Serializable {
     @Column(name = "PRECIO", nullable = false)
     private Double precio;
 
-    // Campo transitorio: no se guarda en BD, solo para mostrar en pantalla
     @Transient
     private String nombreArticulo;
 
@@ -32,8 +32,11 @@ public class FacturaDetalle implements Serializable {
 
     public Integer getIdFacturaDet() { return idFacturaDet; }
     public void setIdFacturaDet(Integer idFacturaDet) { this.idFacturaDet = idFacturaDet; }
+
+    @JsonbTransient   // corta el ciclo — factura ya se conoce por contexto (es el padre), no hace falta ida y vuelta
     public FacturaCabecera getFactura() { return factura; }
     public void setFactura(FacturaCabecera factura) { this.factura = factura; }
+
     public Integer getIdArticulo() { return idArticulo; }
     public void setIdArticulo(Integer idArticulo) { this.idArticulo = idArticulo; }
     public Integer getCantidad() { return cantidad; }

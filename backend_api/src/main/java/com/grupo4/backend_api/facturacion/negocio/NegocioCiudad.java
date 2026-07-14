@@ -13,6 +13,9 @@ public class NegocioCiudad {
     @Transactional
     public int insertar(CiudadEntrega ciudad) {
         try {
+            if (ciudad.getIdCiudad() == null) {
+                ciudad.setIdCiudad(obtenerSiguienteId());
+            }
             em.persist(ciudad);
             return 1;
         } catch (Exception e) {

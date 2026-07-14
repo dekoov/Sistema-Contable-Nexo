@@ -8,8 +8,10 @@ package com.grupo4.backend_api.core;
  *
  * @author dcobe
  */
+import jakarta.ejb.ApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 
+@ApplicationException(rollback = true)
 public class ApiException extends RuntimeException {
     private final Status status;
 

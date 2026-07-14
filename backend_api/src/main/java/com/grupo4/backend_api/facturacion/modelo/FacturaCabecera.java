@@ -2,6 +2,7 @@ package com.grupo4.backend_api.facturacion.modelo;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -17,8 +18,7 @@ public class FacturaCabecera implements Serializable {
     private String numeroFactura;
 
     @Column(name = "FECHA", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date fecha;
+    private LocalDate fecha;
 
     @ManyToOne
     @JoinColumn(name = "ID_CLIENTE", nullable = false)
@@ -40,8 +40,8 @@ public class FacturaCabecera implements Serializable {
     public void setIdFactura(Integer idFactura) { this.idFactura = idFactura; }
     public String getNumeroFactura() { return numeroFactura; }
     public void setNumeroFactura(String numeroFactura) { this.numeroFactura = numeroFactura; }
-    public Date getFecha() { return fecha; }
-    public void setFecha(Date fecha) { this.fecha = fecha; }
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
     public CiudadEntrega getCiudad() { return ciudad; }

@@ -31,13 +31,21 @@ public class CiudadResource {
 
     @GET
     public Response obtenerCiudades(@QueryParam("nombre") String nombre) {
-        List<CiudadEntrega> lista = null;
+        List<CiudadEntrega> lista;
+        
+        // Flujo condicional: Filtrar por nombre o listar todo el catálogo
         if (nombre != null && !nombre.trim().isEmpty()) {
             lista = negocioCiudad.buscarPorNombre(nombre);
+        } else {
+            lista = negocioCiudad.listarTodos();
         }
         
+        // Validación de existencia de datos
         if (lista == null || lista.isEmpty()) {
-            throw new ApiException(Status.NOT_FOUND, "No se encontraron ciudades que coincidan con: " + nombre);
+            String mensajeError = (nombre != null) 
+                ? "No se encontraron ciudades que coincidan con: " + nombre 
+                : "No existen ciudades registradas en el sistema.";
+            throw new ApiException(Status.NOT_FOUND, mensajeError);
         }
         
         ApiResponse<List<CiudadEntrega>> response = new ApiResponse<>(200, "Ciudades obtenidas exitosamente", lista);
@@ -52,7 +60,7 @@ public class CiudadResource {
             throw new ApiException(Status.NOT_FOUND, "Ciudad no encontrada con ID: " + idCiudad);
         }
         
-        ApiResponse<CiudadEntrega> response = new ApiResponse<>(200, "Ciudad obtenida exitosamente", ciudad);
+        ApiResponse<CiudadEntrega> response = new ApiResponse<>(200, "Ciudad obtuvo exitosamente", ciudad);
         return Response.ok(response).build();
     }
 

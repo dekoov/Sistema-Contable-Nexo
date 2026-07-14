@@ -1,21 +1,21 @@
 package com.grupo4.backend_api.cobranzas.modelo;
 
 import com.grupo4.backend_api.facturacion.modelo.FacturaCabecera;
+import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
 @Table(name = "PAGO_DETALLE")
-public class PagoDetalle implements Serializable{
-
+public class PagoDetalle implements Serializable {
     @Id
     @Column(name = "ID_PAGO_DET")
     private Integer idPagoDetalle;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "FECHA_PAGO", nullable = false)
-    private Date fechaPago;
+    private LocalDate fechaPago;
 
     @Column(name = "VALOR", nullable = false)
     private double valor;
@@ -42,10 +42,10 @@ public class PagoDetalle implements Serializable{
         this.idPagoDetalle = idPagoDetalle;
     }
 
-    public Date getFechaPago() {
+    public LocalDate getFechaPago() {
         return fechaPago;
     }
-    public void setFechaPago(Date fechaPago) {
+    public void setFechaPago(LocalDate fechaPago) {
         this.fechaPago = fechaPago;
     }
 

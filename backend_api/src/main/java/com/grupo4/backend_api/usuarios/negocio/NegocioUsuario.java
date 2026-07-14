@@ -13,6 +13,13 @@ public class NegocioUsuario {
   @PersistenceContext(unitName = "SistemaContablePU")
   private EntityManager em;
 
+  public Usuario buscarPorId(Long id) {
+    if (id == null) {
+      return null;
+    }
+    return em.find(Usuario.class, id);
+  }
+
   @Transactional
   public void insertar(Usuario usuario) {
     em.persist(usuario);
@@ -20,7 +27,7 @@ public class NegocioUsuario {
 
   @Transactional
   public void modificar(Usuario usuario) {
-    Usuario u = em.find(Usuario.class, usuario.getId());
+    Usuario u = buscarPorId(usuario.getId());
     if (u != null) {
       u.setNombre(usuario.getNombre());
       u.setRol(usuario.getRol());
@@ -30,14 +37,13 @@ public class NegocioUsuario {
 
   @Transactional
   public void eliminar(Long idUsuario) {
-    Usuario u = em.find(Usuario.class, idUsuario);
+    Usuario u = buscarPorId(idUsuario);
     if (u != null) {
       em.remove(u);
     }
   }
 
   public List<Usuario> listarTodos() {
-    // Cambiado para ordenar por el nuevo campo email
     return em.createQuery("SELECT u FROM Usuario u ORDER BY u.email", Usuario.class)
         .getResultList();
   }

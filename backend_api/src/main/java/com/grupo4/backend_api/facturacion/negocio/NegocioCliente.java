@@ -1,5 +1,6 @@
 package com.grupo4.backend_api.facturacion.negocio;
 
+import com.grupo4.backend_api.core.ApiException;
 import com.grupo4.backend_api.facturacion.modelo.Cliente;
 import jakarta.persistence.*;
 import java.util.List;
@@ -8,6 +9,7 @@ import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.ws.rs.core.Response.Status;
 
 @ApplicationScoped
 public class NegocioCliente {
@@ -45,16 +47,18 @@ public class NegocioCliente {
 
     @Transactional
     public int eliminar(Integer idCliente) {
+        Cliente c = em.find(Cliente.class, idCliente);
+        if (c == null) return 0;
         try {
-            Cliente cliente = em.find(Cliente.class, idCliente);
-            if (cliente == null) {
-                return 0;
-            }
-            em.remove(cliente);
+            em.remove(c);
+            em.flush(); // fuerza el DELETE ahora, dentro de este try/catch — no en el commit del interceptor
             return 1;
-        } catch (Exception e) {
+        } catch (jakarta.persistence.PersistenceException e) {
+            if (com.grupo4.backend_api.core.PersistenceExceptionUtils.esViolacionForeignKey(e)) {
+                throw new ApiException(Status.CONFLICT, "No se puede eliminar: el cliente está referenciado en una o más facturas.");
+            }
             e.printStackTrace();
-            return -1;
+            throw new ApiException(Status.INTERNAL_SERVER_ERROR, "Error interno al eliminar el cliente.");
         }
     }
 
