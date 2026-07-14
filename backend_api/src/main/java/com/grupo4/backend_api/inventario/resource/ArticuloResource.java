@@ -9,8 +9,10 @@ package com.grupo4.backend_api.inventario.resource;
  * @author dcobe
  */
 import com.grupo4.backend_api.core.ApiResponse;
+import com.grupo4.backend_api.inventario.dto.StockResponseDTO;
 import com.grupo4.backend_api.inventario.modelo.Articulo;
 import com.grupo4.backend_api.inventario.negocio.NegocioArticulo;
+import com.grupo4.backend_api.inventario.negocio.NegocioReporteInv;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -29,6 +31,8 @@ public class ArticuloResource {
 
     @Inject
     private NegocioArticulo negocioArticulo;
+    @Inject
+    private NegocioReporteInv negocioReporte;
 
     @GET
     public Response obtenerArticulos(@QueryParam("nombre") String nombre) {
@@ -107,5 +111,17 @@ public class ArticuloResource {
         return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new ApiResponse<>(500, "Error al eliminar el artículo. Puede estar relacionado con otras tablas."))
                 .build();
+    }
+    
+    @GET
+    @Path("/{idArticulo}/stock")
+    public Response obtenerStockActual(@PathParam("idArticulo") BigDecimal idArticulo) {
+        try {
+            int stock = negocioReporte.obtenerStockActual(idArticulo);
+            StockResponseDTO response = new StockResponseDTO(stock);
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.serverError().entity("{\"error\":\"Error al calcular el stock\"}").build();
+        }
     }
 }

@@ -15,9 +15,9 @@ import jakarta.enterprise.context.ApplicationScoped;
     name = "java:global/jdbc/NexoDS",
     className = "org.postgresql.ds.PGSimpleDataSource",  // revertido — LAO cubre este caso, no necesitas XA real
     user = "postgres",
-    password = "postgres",
+    password = "131021",
     databaseName = "nexo_db",
-    serverName = "haproxy",
+    serverName = "localhost",
     portNumber = 5432, // Si tienes un balanceador HAProxy frente a Patroni, asegúrate de apuntar a su puerto.
     minPoolSize = 2,
     maxPoolSize = 20,
