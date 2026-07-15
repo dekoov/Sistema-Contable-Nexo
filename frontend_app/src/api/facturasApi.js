@@ -292,6 +292,113 @@ export async function crearFactura(factura) {
   );
 }
 
+export async function actualizarFactura(idFactura, factura) {
+  const idNumerico = Number(idFactura);
+  const detalles = factura.detalles.map(
+    (detalle) => {
+      const payloadDetalle = {
+        idArticulo: Number(detalle.idArticulo),
+        cantidad: Number(detalle.cantidad),
+        precio: Number(detalle.precio),
+        nombreArticulo: detalle.nombreArticulo ?? "",
+      };
+      if (detalle.idFacturaDet) {
+        payloadDetalle.idFacturaDet = Number(detalle.idFacturaDet);
+      }
+      return payloadDetalle;
+    },
+  );
+
+  const payload = {
+    idFactura: idNumerico,
+    numeroFactura: factura.numeroFactura.trim(),
+    fecha: factura.fecha,
+    cliente: {
+      idCliente: Number(factura.cliente?.idCliente ?? factura.cliente),
+    },
+    ciudad: {
+      idCiudad: Number(factura.ciudad?.idCiudad ?? factura.ciudad),
+    },
+    valorTotal: calcularTotal(detalles),
+    detalles,
+  };
+
+  if (USE_MOCK_API) {
+    await esperar();
+
+    const facturas = leerFacturasMock();
+
+    const indiceFactura = facturas.findIndex(
+      (item) => Number(item.idFactura) === idNumerico,
+    );
+
+    if (indiceFactura === -1) {
+      throw crearErrorMock(
+        "La factura que intentas modificar no existe.",
+        404,
+      );
+    }
+
+    const numeroRepetido = facturas.some(
+      (item) =>
+        item.numeroFactura.toLowerCase() === payload.numeroFactura.toLowerCase() &&
+        Number(item.idFactura) !== idNumerico,
+    );
+
+    if (numeroRepetido) {
+      throw crearErrorMock(
+        `Ya existe otra factura con el número "${payload.numeroFactura}".`,
+        409,
+      );
+    }
+
+    let siguienteIdDetalle = facturas.reduce((maximo, facturaActual) => {
+      const maximoFactura = facturaActual.detalles.reduce(
+        (maximoDetalle, det) =>
+          Math.max(maximoDetalle, Number(det.idFacturaDet) || 0),
+        0,
+      );
+      return Math.max(maximo, maximoFactura);
+    }, 0) + 1;
+
+    const detallesConId = detalles.map((det) => {
+      if (det.idFacturaDet) {
+        return det;
+      }
+      const nuevoDet = {
+        ...det,
+        idFacturaDet: siguienteIdDetalle,
+      };
+      siguienteIdDetalle++;
+      return nuevoDet;
+    });
+
+    const facturaActualizada = {
+      ...facturas[indiceFactura],
+      numeroFactura: payload.numeroFactura,
+      fecha: payload.fecha,
+      cliente: factura.cliente,
+      ciudad: factura.ciudad,
+      valorTotal: payload.valorTotal,
+      detalles: detallesConId,
+    };
+
+    const nuevasFacturas = [...facturas];
+    nuevasFacturas[indiceFactura] = facturaActualizada;
+
+    guardarFacturasMock(nuevasFacturas);
+
+    return normalizarFactura(facturaActualizada);
+  }
+
+  const response = await apiClient.put(
+    `/facturas/${idFactura}`,
+    payload,
+  );
+
+  return normalizarFactura(extraerData(response));
+}
+
 export async function actualizarDetalleFactura(
   idDetalle,
   detalle,

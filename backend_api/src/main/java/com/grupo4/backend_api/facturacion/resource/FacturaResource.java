@@ -100,4 +100,23 @@ public class FacturaResource {
         }
         return Response.ok(new ApiResponse<>(200, "Factura eliminada exitosamente")).build();
     }
+    
+    @PUT
+    @Path("/{id}")
+    public Response modificar(@PathParam("id") Integer id, FacturaCabecera facturaUpdate) {
+        // Aseguramos que el ID de la URL coincida con el del payload
+        facturaUpdate.setIdFactura(id);
+        
+        int resultado = negocioFactura.modificar(facturaUpdate);
+        
+        if (resultado == 0) {
+            throw new ApiException(Status.NOT_FOUND, "Factura no encontrada para actualizar: " + id);
+        } else if (resultado == -1) {
+            throw new ApiException(Status.INTERNAL_SERVER_ERROR, "Error interno al actualizar la factura.");
+        }
+
+        // Recuperamos la factura actualizada para devolverla en la respuesta
+        FacturaCabecera fActualizada = negocioFactura.buscar(id);
+        return Response.ok(new ApiResponse<>(200, "Factura actualizada correctamente", fActualizada)).build();
+    }
 }

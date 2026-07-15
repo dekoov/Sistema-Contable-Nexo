@@ -16,7 +16,9 @@ public class NegocioFactura {
 
     @PersistenceContext(unitName = "SistemaContablePU")
     private EntityManager em;
-
+    
+    @jakarta.inject.Inject
+    private NegocioReporteInv reporteInv;
     /**
      * Inserta una nueva factura en la base de datos y, tras confirmar la
      * transacción,
@@ -107,15 +109,49 @@ public class NegocioFactura {
      * Modifica los valores de cantidad y precio de un detalle existente.
      */
     @Transactional
-    public int modificarDetalle(FacturaDetalle detalle) {
+    public int modificar(FacturaCabecera facturaUpdate) {
         try {
-            FacturaDetalle det = em.find(FacturaDetalle.class, detalle.getIdFacturaDet());
-            if (det != null) {
-                det.setCantidad(detalle.getCantidad());
-                det.setPrecio(detalle.getPrecio());
-                em.persist(det);
+            // 1. Buscar la entidad gestionada por JPA
+            FacturaCabecera facturaExistente = em.find(FacturaCabecera.class, facturaUpdate.getIdFactura());
+            if (facturaExistente == null) {
+                return 0; // No encontrada
             }
+
+            // 2. Actualizar campos simples
+            facturaExistente.setNumeroFactura(facturaUpdate.getNumeroFactura());
+            facturaExistente.setFecha(facturaUpdate.getFecha());
+            facturaExistente.setValorTotal(facturaUpdate.getValorTotal());
+
+            // 3. Actualizar relaciones (Validamos que existan)
+            Cliente clienteRef = em.find(Cliente.class, facturaUpdate.getCliente().getIdCliente());
+            if (clienteRef == null) throw new ApiException(Status.BAD_REQUEST, "Cliente no existe");
+            facturaExistente.setCliente(clienteRef);
+
+            CiudadEntrega ciudadRef = em.find(CiudadEntrega.class, facturaUpdate.getCiudad().getIdCiudad());
+            if (ciudadRef == null) throw new ApiException(Status.BAD_REQUEST, "Ciudad no existe");
+            facturaExistente.setCiudad(ciudadRef);
+
+            // 4. Actualizar detalles
+            if (facturaUpdate.getDetalles() != null) {
+                for (FacturaDetalle detUpdate : facturaUpdate.getDetalles()) {
+                    for (FacturaDetalle detExistente : facturaExistente.getDetalles()) {
+                        // Comparamos por el ID del detalle
+                        if (detExistente.getIdFacturaDet().equals(detUpdate.getIdFacturaDet())) {
+                            detExistente.setIdArticulo(detUpdate.getIdArticulo());
+                            detExistente.setCantidad(detUpdate.getCantidad());
+                            detExistente.setPrecio(detUpdate.getPrecio());
+                            // Opcional: Validar stock aquí si la cantidad aumentó
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 5. Merge sincroniza los cambios con la BD
+            em.merge(facturaExistente);
             return 1;
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
@@ -214,7 +250,6 @@ public class NegocioFactura {
      */
     public void validarStockDisponible(java.math.BigDecimal idArticulo, int cantidadSolicitada) {
         try {
-            NegocioReporteInv reporteInv = new NegocioReporteInv();
             int stockDisponible = reporteInv.obtenerStockActual(idArticulo);
 
             if (cantidadSolicitada > stockDisponible) {

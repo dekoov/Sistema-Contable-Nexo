@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getServerInstance } from "../../api/systemApi";
+import { RefreshCw, Server, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function ServerInstanceBadge() {
   const [instance, setInstance] = useState(null);
@@ -32,23 +33,23 @@ export default function ServerInstanceBadge() {
   }, [refresh]);
 
   return (
-    <div className="server-instance">
-      <div>
-        <span className={`status-dot ${error ? "status-error" : "status-ok"}`} />
-        <strong>
-          {instance ? `${instance.name} | Puerto ${instance.port}` : "Nodo sin consultar"}
-        </strong>
-        {instance?.host && <small className="d-block text-secondary">{instance.host}</small>}
-        {error && <small className="d-block text-danger">{error}</small>}
+    <div className="d-flex align-items-center bg-light border px-3 py-1 rounded-pill gap-2">
+      <div style={{ width: 8, height: 8 }} className={`rounded-circle ${error ? "bg-danger" : "bg-success"}`} />
+      
+      <div className="d-flex flex-column" style={{ fontSize: '0.75rem' }}>
+        <span className="fw-bold text-dark">
+          {instance ? `${instance.name} : ${instance.port}` : "Nodo offline"}
+        </span>
+        {instance?.host && <span className="text-muted" style={{ fontSize: '0.65rem' }}>{instance.host}</span>}
       </div>
 
       <button
-        className="btn btn-sm btn-outline-primary"
+        className="btn btn-link btn-sm p-0 ms-2 text-dark"
         onClick={refresh}
         disabled={loading}
-        title="Consultar nuevamente para evidenciar el balanceo"
+        title="Actualizar estado del nodo"
       >
-        {loading ? "Consultando..." : "Actualizar nodo"}
+        <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
       </button>
     </div>
   );

@@ -5,9 +5,8 @@ import {
 } from "react";
 
 import {
-  actualizarDetalleFactura,
+  actualizarFactura,
   crearFactura,
-  eliminarDetalleFactura,
   eliminarFactura,
   listarFacturas,
   obtenerMensajeFacturaError,
@@ -43,12 +42,6 @@ const DETALLE_INICIAL = {
   precio: "",
 };
 
-const DETALLE_HISTORICO_INICIAL = {
-  idFacturaDet: null,
-  cantidad: "",
-  precio: "",
-};
-
 function calcularTotal(detalles) {
   return detalles.reduce((total, detalle) => {
     return (
@@ -71,7 +64,7 @@ function formatearFecha(fecha) {
     return "";
   }
 
-  const partes = fecha.split("-");
+  const partes = fecha.slice(0, 10).split("-");
 
   if (partes.length === 3) {
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
@@ -152,24 +145,17 @@ export default function FacturasPage() {
   ] = useState([]);
 
   const [
+    idFacturaEditando,
+    setIdFacturaEditando,
+  ] = useState(null);
+
+  const [
     indiceDetalleEditando,
     setIndiceDetalleEditando,
   ] = useState(null);
 
   const [busqueda, setBusqueda] =
     useState("");
-
-  const [
-    facturaSeleccionada,
-    setFacturaSeleccionada,
-  ] = useState(null);
-
-  const [
-    detalleHistorico,
-    setDetalleHistorico,
-  ] = useState(
-    DETALLE_HISTORICO_INICIAL,
-  );
 
   const [cargando, setCargando] =
     useState(true);
@@ -179,6 +165,8 @@ export default function FacturasPage() {
 
   const [mensaje, setMensaje] =
     useState(null);
+
+  const estaEditando = idFacturaEditando !== null;
 
   const totalTemporal = useMemo(
     () => calcularTotal(detallesTemporales),
@@ -254,9 +242,7 @@ export default function FacturasPage() {
     cargarDatosIniciales();
   }, []);
 
-  async function recargarFacturas(
-    idSeleccionar = null,
-  ) {
+  async function recargarFacturas() {
     const data = await listarFacturas();
 
     const enriquecidas =
@@ -268,17 +254,6 @@ export default function FacturasPage() {
       );
 
     setFacturas(enriquecidas);
-
-    if (idSeleccionar !== null) {
-      const seleccionada =
-        enriquecidas.find(
-          (factura) =>
-            Number(factura.idFactura) ===
-            Number(idSeleccionar),
-        ) ?? null;
-
-      setFacturaSeleccionada(seleccionada);
-    }
   }
 
   function actualizarCabecera(event) {
@@ -330,6 +305,7 @@ export default function FacturasPage() {
     });
 
     setDetallesTemporales([]);
+    setIdFacturaEditando(null);
     limpiarDetalleTemporal();
   }
 
@@ -401,6 +377,12 @@ export default function FacturasPage() {
     }
 
     const nuevoDetalle = {
+      idFacturaDet:
+        indiceDetalleEditando !== null
+          ? detallesTemporales[
+              indiceDetalleEditando
+            ].idFacturaDet
+          : null,
       idArticulo: Number(
         detalle.idArticulo,
       ),
@@ -515,7 +497,21 @@ export default function FacturasPage() {
     setMensaje(null);
 
     try {
-      const nuevaFactura =
+      if (estaEditando) {
+        await actualizarFactura(idFacturaEditando, {
+          numeroFactura: cabecera.numeroFactura,
+          fecha: cabecera.fecha,
+          cliente,
+          ciudad,
+          detalles: detallesTemporales,
+        });
+
+        setMensaje({
+          tipo: "success",
+          texto:
+            "Factura modificada correctamente.",
+        });
+      } else {
         await crearFactura({
           numeroFactura:
             cabecera.numeroFactura,
@@ -525,23 +521,23 @@ export default function FacturasPage() {
           detalles: detallesTemporales,
         });
 
+        setMensaje({
+          tipo: "success",
+          texto:
+            "Factura registrada correctamente.",
+        });
+      }
+
       limpiarFactura();
-
-      await recargarFacturas(
-        nuevaFactura.idFactura,
-      );
-
-      setMensaje({
-        tipo: "success",
-        texto:
-          "Factura registrada correctamente.",
-      });
+      await recargarFacturas();
     } catch (error) {
       setMensaje({
         tipo: "danger",
         texto: obtenerMensajeFacturaError(
           error,
-          "No fue posible registrar la factura.",
+          estaEditando
+            ? "No fue posible modificar la factura."
+            : "No fue posible registrar la factura.",
         ),
       });
     } finally {
@@ -550,157 +546,39 @@ export default function FacturasPage() {
   }
 
   function seleccionarFactura(factura) {
-    setFacturaSeleccionada(factura);
+    setIdFacturaEditando(factura.idFactura);
 
-    setDetalleHistorico(
-      DETALLE_HISTORICO_INICIAL,
-    );
-
-    setMensaje(null);
-  }
-
-  function editarDetalleHistorico(
-    detalleSeleccionado,
-  ) {
-    setDetalleHistorico({
-      idFacturaDet:
-        detalleSeleccionado.idFacturaDet,
-      cantidad: String(
-        detalleSeleccionado.cantidad,
-      ),
-      precio: String(
-        detalleSeleccionado.precio,
-      ),
+    setCabecera({
+      numeroFactura: factura.numeroFactura,
+      fecha: factura.fecha ? factura.fecha.slice(0, 10) : "",
+      idCliente: String(factura.cliente?.idCliente ?? ""),
+      idCiudad: String(factura.ciudad?.idCiudad ?? ""),
     });
-  }
 
-  async function guardarDetalleHistorico(
-    event,
-  ) {
-    event.preventDefault();
-
-    const cantidad = Number(
-      detalleHistorico.cantidad,
+    setDetallesTemporales(
+      factura.detalles.map((detalleActual) => ({
+        idFacturaDet: detalleActual.idFacturaDet,
+        idArticulo: detalleActual.idArticulo,
+        nombreArticulo: detalleActual.nombreArticulo,
+        cantidad: detalleActual.cantidad,
+        precio: detalleActual.precio,
+      })),
     );
 
-    const precio = Number(
-      detalleHistorico.precio,
-    );
+    limpiarDetalleTemporal();
+    setMensaje(null);
 
-    if (
-      !Number.isInteger(cantidad) ||
-      cantidad <= 0
-    ) {
-      setMensaje({
-        tipo: "warning",
-        texto:
-          "La cantidad debe ser un entero mayor que cero.",
-      });
-
-      return;
-    }
-
-    if (
-      !Number.isFinite(precio) ||
-      precio <= 0
-    ) {
-      setMensaje({
-        tipo: "warning",
-        texto:
-          "El precio debe ser mayor que cero.",
-      });
-
-      return;
-    }
-
-    try {
-      await actualizarDetalleFactura(
-        detalleHistorico.idFacturaDet,
-        {
-          cantidad,
-          precio,
-        },
-      );
-
-      const idFactura =
-        facturaSeleccionada.idFactura;
-
-      setDetalleHistorico(
-        DETALLE_HISTORICO_INICIAL,
-      );
-
-      await recargarFacturas(idFactura);
-
-      setMensaje({
-        tipo: "success",
-        texto:
-          "Detalle de factura modificado correctamente.",
-      });
-    } catch (error) {
-      setMensaje({
-        tipo: "danger",
-        texto: obtenerMensajeFacturaError(
-          error,
-          "No fue posible modificar el detalle.",
-        ),
-      });
-    }
-  }
-
-  async function confirmarEliminarDetalle(
-    detalleSeleccionado,
-  ) {
-    if (
-      facturaSeleccionada.detalles.length <=
-      1
-    ) {
-      setMensaje({
-        tipo: "warning",
-        texto:
-          "La factura debe conservar al menos un detalle.",
-      });
-
-      return;
-    }
-
-    const confirmado = window.confirm(
-      `¿Eliminar "${detalleSeleccionado.nombreArticulo}" del detalle?`,
-    );
-
-    if (!confirmado) {
-      return;
-    }
-
-    try {
-      await eliminarDetalleFactura(
-        detalleSeleccionado.idFacturaDet,
-      );
-
-      await recargarFacturas(
-        facturaSeleccionada.idFactura,
-      );
-
-      setMensaje({
-        tipo: "success",
-        texto:
-          "Detalle eliminado correctamente.",
-      });
-    } catch (error) {
-      setMensaje({
-        tipo: "danger",
-        texto: obtenerMensajeFacturaError(
-          error,
-          "No fue posible eliminar el detalle.",
-        ),
-      });
-    }
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   async function confirmarEliminarFactura(
     factura,
   ) {
     const confirmado = window.confirm(
-      `¿Eliminar la factura "${factura.numeroFactura}" completa?`,
+      `¿Eliminar la factura "${factura.numeroFactura}" completa?\n\nTambién se eliminarán todos sus detalles.`,
     );
 
     if (!confirmado) {
@@ -713,11 +591,9 @@ export default function FacturasPage() {
       );
 
       if (
-        Number(
-          facturaSeleccionada?.idFactura,
-        ) === Number(factura.idFactura)
+        Number(idFacturaEditando) === Number(factura.idFactura)
       ) {
-        setFacturaSeleccionada(null);
+        limpiarFactura();
       }
 
       await recargarFacturas();
@@ -793,7 +669,9 @@ export default function FacturasPage() {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
           <h2 className="h5 mb-4">
-            Cabecera de factura
+            {estaEditando
+              ? `Modificar factura #${idFacturaEditando}`
+              : "Cabecera de factura"}
           </h2>
 
           <div className="row g-3">
@@ -1026,7 +904,10 @@ export default function FacturasPage() {
                   detallesTemporales.map(
                     (item, indice) => (
                       <tr
-                        key={`${item.idArticulo}-${indice}`}
+                        key={
+                          item.idFacturaDet ??
+                          `${item.idArticulo}-${indice}`
+                        }
                       >
                         <td>
                           {item.nombreArticulo}
@@ -1110,7 +991,9 @@ export default function FacturasPage() {
             >
               {guardando
                 ? "Guardando..."
-                : "Guardar factura"}
+                : estaEditando
+                  ? "Guardar cambios"
+                  : "Guardar factura"}
             </button>
           </div>
         </div>
@@ -1198,7 +1081,7 @@ export default function FacturasPage() {
                               )
                             }
                           >
-                            Ver detalles
+                            Consultar / modificar
                           </button>
 
                           <button
@@ -1206,7 +1089,7 @@ export default function FacturasPage() {
                             className="btn btn-sm btn-outline-danger"
                             onClick={() =>
                               confirmarEliminarFactura(
-                                factura,
+                                  factura,
                               )
                             }
                           >
@@ -1235,187 +1118,6 @@ export default function FacturasPage() {
           </div>
         </div>
       </div>
-
-      {facturaSeleccionada && (
-        <div className="card border-primary shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="h5">
-              Detalle de{" "}
-              {
-                facturaSeleccionada.numeroFactura
-              }
-            </h2>
-
-            <p className="text-secondary">
-              Cliente:{" "}
-              {
-                facturaSeleccionada.cliente
-                  ?.nombre
-              }{" "}
-              | Total:{" "}
-              {formatearDinero(
-                facturaSeleccionada.valorTotal,
-              )}
-            </p>
-
-            {detalleHistorico.idFacturaDet !==
-              null && (
-              <form
-                className="row g-3 align-items-end mb-4"
-                onSubmit={
-                  guardarDetalleHistorico
-                }
-              >
-                <div className="col-6 col-md-3">
-                  <label className="form-label">
-                    Cantidad
-                  </label>
-
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    className="form-control"
-                    value={
-                      detalleHistorico.cantidad
-                    }
-                    onChange={(event) =>
-                      setDetalleHistorico(
-                        (actual) => ({
-                          ...actual,
-                          cantidad:
-                            event.target.value,
-                        }),
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="col-6 col-md-3">
-                  <label className="form-label">
-                    Precio
-                  </label>
-
-                  <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    className="form-control"
-                    value={
-                      detalleHistorico.precio
-                    }
-                    onChange={(event) =>
-                      setDetalleHistorico(
-                        (actual) => ({
-                          ...actual,
-                          precio:
-                            event.target.value,
-                        }),
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="col-12 col-md-auto">
-                  <button
-                    type="submit"
-                    className="btn btn-success"
-                  >
-                    Guardar modificación
-                  </button>
-                </div>
-
-                <div className="col-12 col-md-auto">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() =>
-                      setDetalleHistorico(
-                        DETALLE_HISTORICO_INICIAL,
-                      )
-                    }
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="table-responsive">
-              <table className="table align-middle">
-                <thead>
-                  <tr>
-                    <th>Artículo</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Subtotal</th>
-                    <th className="text-end">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {facturaSeleccionada.detalles.map(
-                    (item) => (
-                      <tr
-                        key={
-                          item.idFacturaDet
-                        }
-                      >
-                        <td>
-                          {
-                            item.nombreArticulo
-                          }
-                        </td>
-                        <td>{item.cantidad}</td>
-                        <td>
-                          {formatearDinero(
-                            item.precio,
-                          )}
-                        </td>
-                        <td>
-                          {formatearDinero(
-                            item.cantidad *
-                              item.precio,
-                          )}
-                        </td>
-                        <td>
-                          <div className="d-flex justify-content-end gap-2">
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() =>
-                                editarDetalleHistorico(
-                                  item,
-                                )
-                              }
-                            >
-                              Modificar
-                            </button>
-
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() =>
-                                confirmarEliminarDetalle(
-                                  item,
-                                )
-                              }
-                            >
-                              Eliminar
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

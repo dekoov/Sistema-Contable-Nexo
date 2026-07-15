@@ -9,6 +9,7 @@ package com.grupo4.backend_api.inventario.resource;
  * @author dcobe
  */
 import com.grupo4.backend_api.core.ApiResponse;
+import com.grupo4.backend_api.inventario.dto.StockArticuloDTO;
 import com.grupo4.backend_api.inventario.dto.StockResponseDTO;
 import com.grupo4.backend_api.inventario.modelo.Articulo;
 import com.grupo4.backend_api.inventario.negocio.NegocioArticulo;
@@ -112,16 +113,11 @@ public class ArticuloResource {
                 .entity(new ApiResponse<>(500, "Error al eliminar el artículo. Puede estar relacionado con otras tablas."))
                 .build();
     }
-    
+
     @GET
-    @Path("/{idArticulo}/stock")
-    public Response obtenerStockActual(@PathParam("idArticulo") BigDecimal idArticulo) {
-        try {
-            int stock = negocioReporte.obtenerStockActual(idArticulo);
-            StockResponseDTO response = new StockResponseDTO(stock);
-            return Response.ok(response).build();
-        } catch (Exception e) {
-            return Response.serverError().entity("{\"error\":\"Error al calcular el stock\"}").build();
-        }
+    @Path("/{id}/stock")
+    public Response obtenerStock(@PathParam("id") BigDecimal idArticulo) {
+        StockArticuloDTO stock = negocioReporte.obtenerDesgloseStock(idArticulo);
+        return Response.ok(new ApiResponse<>(200, "Stock obtenido exitosamente", stock)).build();
     }
 }

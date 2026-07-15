@@ -19,6 +19,8 @@ services:
     build:
       context: ./payara
     container_name: payara-nodo1
+    environment:
+      - NODO_NAME=payara-nodo1
     networks:
       - patroni-net
 
@@ -26,6 +28,8 @@ services:
     build:
       context: ./payara
     container_name: payara-nodo2
+    environment:
+      - NODO_NAME=payara-nodo2
     networks:
       - patroni-net
 
@@ -33,6 +37,8 @@ services:
     build:
       context: ./payara
     container_name: payara-nodo3
+    environment:
+      - NODO_NAME=payara-nodo3
     networks:
       - patroni-net
 

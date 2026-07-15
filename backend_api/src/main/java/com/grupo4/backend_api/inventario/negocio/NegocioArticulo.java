@@ -3,6 +3,7 @@ package com.grupo4.backend_api.inventario.negocio;
 import com.grupo4.backend_api.inventario.modelo.Articulo;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response.Status;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -44,15 +45,18 @@ public class NegocioArticulo {
     
     @Transactional
     public int eliminar(BigDecimal idArticulo) {
+        Articulo a = em.find(Articulo.class, idArticulo);
+        if (a == null) return 0;
         try {
-            Articulo a = em.find(Articulo.class, idArticulo);
-            if (a != null)
-                em.remove(a);
+            em.remove(a);
+            em.flush();
             return 1;
-        } catch (Exception e) {
-
+        } catch (jakarta.persistence.PersistenceException e) {
+            if (com.grupo4.backend_api.core.PersistenceExceptionUtils.esViolacionForeignKey(e)) {
+                throw new com.grupo4.backend_api.core.ApiException(Status.CONFLICT, "No se puede eliminar: el artículo está referenciado en facturas o comprobantes.");
+            }
             e.printStackTrace();
-            return -1;
+            throw new com.grupo4.backend_api.core.ApiException(Status.INTERNAL_SERVER_ERROR, "Error interno al eliminar el artículo.");
         }
     }
 
