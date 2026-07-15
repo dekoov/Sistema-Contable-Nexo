@@ -160,6 +160,14 @@ a {
   color: #64748b;
 }
 
+.hover-bg {
+  transition: background-color 0.2s ease;
+}
+
+.hover-bg:hover {
+  background-color: #f8f9fa;
+}
+
 .module-card {
   display: block;
   min-height: 170px;
@@ -172,7 +180,19 @@ a {
   transition: 160ms ease;
 }
 
-.module-card:hover {
+.module-card-large {
+  display: block;
+  min-height: 200px;
+  padding: 32px;
+  border: 2px solid #3b82f6;
+  border-radius: 20px;
+  color: #172033;
+  background: #f0f7ff;
+  box-shadow: 0 10px 30px rgb(59 130 246 / 15%);
+  transition: 160ms ease;
+}
+
+.module-card:hover, .module-card-large:hover {
   color: #172033;
   transform: translateY(-3px);
   box-shadow: 0 14px 35px rgb(15 23 42 / 11%);

@@ -1,78 +1,71 @@
 package com.grupo4.backend_api.inventario.negocio;
 
+import com.grupo4.backend_api.inventario.dto.ReporteMovimientoDTO;
+import com.grupo4.backend_api.inventario.dto.StockArticuloDTO;
+import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.PersistenceContext;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Stateless
 public class NegocioReporteInv {
 
-    private static final String PU = "SistemaContablePU";
+    @PersistenceContext(unitName = "SistemaContablePU")
+    private EntityManager em;
 
-    /**
-     * Retorna datos agrupados para la construcción de reportes visuales basados en un rango de fechas.
-     */
-    public List<Object[]> obtenerDatosReporte(Date fechaInicio, Date fechaFin) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em = emf.createEntityManager();
-            
-            String jpql = "SELECT d.idArticulo.nombre, c.idTipoMovimiento.nombre, c.idTipoMovimiento.tipo, SUM(d.cantidad) " +
-                          "FROM ComprobanteDetalle d JOIN d.idComprobante c " +
-                          "WHERE c.fecha BETWEEN :inicio AND :fin " +
-                          "GROUP BY d.idArticulo.nombre, c.idTipoMovimiento.nombre, c.idTipoMovimiento.tipo " +
-                          "ORDER BY d.idArticulo.nombre";
-                          
-            return em.createQuery(jpql)
-                     .setParameter("inicio", fechaInicio)
-                     .setParameter("fin", fechaFin)
-                     .getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (em != null) em.close();
-            if (emf != null) emf.close();
-        }
+    public List<ReporteMovimientoDTO> obtenerDatosReporte(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin) {
+        String jpql = "SELECT d.idArticulo.idArticulo, d.idArticulo.nombre, c.idTipoMovimiento.nombre, c.idTipoMovimiento.tipo, SUM(d.cantidad) " +
+                      "FROM ComprobanteDetalle d JOIN d.idComprobante c " +
+                      "WHERE c.fecha BETWEEN :inicio AND :fin " +
+                      "GROUP BY d.idArticulo.idArticulo, d.idArticulo.nombre, c.idTipoMovimiento.nombre, c.idTipoMovimiento.tipo " +
+                      "ORDER BY d.idArticulo.nombre";
+
+        List<Object[]> resultados = em.createQuery(jpql, Object[].class)
+                 .setParameter("inicio", fechaInicio)
+                 .setParameter("fin", fechaFin)
+                 .getResultList();
+
+        return resultados.stream().map(obj -> new ReporteMovimientoDTO(
+                (java.math.BigDecimal) obj[0],
+                (String) obj[1],
+                (String) obj[2],
+                String.valueOf(obj[3]),
+                ((Number) obj[4]).longValue()
+        )).collect(java.util.stream.Collectors.toList());
     }
 
-    /**
-     * Calcula el stock disponible en tiempo real de un artículo específico basándose en sus movimientos.
-     * * @param idArticulo ID único del artículo
-     * @return saldo neto disponible en el inventario
-     */
-    public int obtenerStockActual(java.math.BigDecimal idArticulo) {
-        EntityManagerFactory emf = null;
-        EntityManager em = null;
-        try {
-            emf = Persistence.createEntityManagerFactory(PU);
-            em = emf.createEntityManager();
+    public int obtenerStockActual(BigDecimal idArticulo) {
+        String jpqlIngresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
+                              "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo = 'I'";
+        Number ingresos = (Number) em.createQuery(jpqlIngresos)
+                .setParameter("idArt", idArticulo)
+                .getSingleResult();
 
-            // Sumar Ingresos
-            String jpqlIngresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
-                                  "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo = 'I'";
-            Number ingresos = (Number) em.createQuery(jpqlIngresos)
-                    .setParameter("idArt", idArticulo)
-                    .getSingleResult();
+        String jpqlEgresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
+                             "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo <> 'I'";
+        Number egresos = (Number) em.createQuery(jpqlEgresos)
+                .setParameter("idArt", idArticulo)
+                .getSingleResult();
 
-            // Sumar Egresos
-            String jpqlEgresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
-                                 "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo <> 'I'";
-            Number egresos = (Number) em.createQuery(jpqlEgresos)
-                    .setParameter("idArt", idArticulo)
-                    .getSingleResult();
+        return ingresos.intValue() - egresos.intValue();
+    }
+    
+    public StockArticuloDTO obtenerDesgloseStock(java.math.BigDecimal idArticulo) {
+        String jpqlIngresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
+                              "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo = 'I'";
+        Number ingresos = (Number) em.createQuery(jpqlIngresos)
+                .setParameter("idArt", idArticulo)
+                .getSingleResult();
 
-            return ingresos.intValue() - egresos.intValue();
+        String jpqlEgresos = "SELECT COALESCE(SUM(d.cantidad), 0) FROM ComprobanteDetalle d " +
+                             "WHERE d.idArticulo.idArticulo = :idArt AND d.idComprobante.idTipoMovimiento.tipo <> 'I'";
+        Number egresos = (Number) em.createQuery(jpqlEgresos)
+                .setParameter("idArt", idArticulo)
+                .getSingleResult();
 
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            return 0; 
-        } finally {
-            if (em != null) em.close();
-            if (emf != null) emf.close();
-        }
+        return new StockArticuloDTO(ingresos.intValue(), egresos.intValue());
     }
 }

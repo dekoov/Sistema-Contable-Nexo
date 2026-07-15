@@ -123,7 +123,7 @@ export default function LoginPage() {
     <div className="login-page">
       <section className="login-card shadow-lg">
         <div className="login-brand">
-          <span className="login-logo">SC</span>
+                    <img src="/favicon.svg" alt="Logo" style={{ width: '48px', height: '48px' }} />
           <div>
             <h1>Sistema Contable</h1>
             <p>Aplicación web distribuida</p>
