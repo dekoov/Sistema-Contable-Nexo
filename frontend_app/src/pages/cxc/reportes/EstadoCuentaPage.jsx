@@ -612,8 +612,6 @@ export default function EstadoCuentaPage() {
                 <thead>
                   <tr>
                     <th>Factura</th>
-                    <th>Fecha</th>
-                    <th>Cliente</th>
                     <th className="text-end">
                       Valor factura
                     </th>
@@ -648,26 +646,6 @@ export default function EstadoCuentaPage() {
                                 fila.numeroFactura
                               }
                             </strong>
-                          </td>
-
-                          <td>
-                            {formatearFecha(
-                              fila.fecha,
-                            )}
-                          </td>
-
-                          <td>
-                            {fila.cliente?.nombre ??
-                              "Sin cliente"}
-
-                            {fila.cliente?.cedula && (
-                              <small className="d-block text-secondary">
-                                {
-                                  fila.cliente
-                                    .cedula
-                                }
-                              </small>
-                            )}
                           </td>
 
                           <td className="text-end">
@@ -712,7 +690,7 @@ export default function EstadoCuentaPage() {
 
                 <tfoot>
                   <tr>
-                    <th colSpan="3">
+                    <th colSpan="1">
                       Totales generales
                     </th>
 
