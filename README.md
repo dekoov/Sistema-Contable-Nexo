@@ -100,10 +100,12 @@ docker compose -f docker-compose-rest.yml up -d --build
 ```
 
 Esto construye la imagen de Payara con el `.war` embebido y levanta los 3 nodos + Nginx, conectándose a la red externa creada en el paso (c).
+Para usar la aplicación no olvidar correr el frontend `npm run dev` con su archivo `.env` apuntando a nuestro backend
 
 **f) Verificar que quedó funcional**
 
-- App disponible en: **http://localhost:9090**
+- Backend disponible en: `http://localhost:9090`
+- App disponible en `http://localhost:5173`
 - Salud de Nginx: `curl http://localhost:9090/nginx-health` → `ok`
 - Al desplegar, el backend siembra automáticamente un usuario administrador (`DbInitializer`): **usuario `admin` / contraseña `admin`, rol `ADMIN`** — úsalo para el primer login desde el frontend (endpoint `/api/auth/login-password`).
 - El esquema de base de datos se crea automáticamente al arrancar (EclipseLink/Hibernate con `ddl-generation`/`schema-generation` en modo _drop-and-create_ sobre `persistence.xml`), no requiere migraciones manuales.
