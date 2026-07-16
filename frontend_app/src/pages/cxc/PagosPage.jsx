@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import {
   actualizarPago,
@@ -15,6 +16,7 @@ import {
 import { listarFacturas } from "../../api/facturasApi";
 import { listarCobradores } from "../../api/cobradoresApi";
 import { listarFormasPago } from "../../api/formasPagoApi";
+import { listarHistorialIntegracion } from "../../api/integracionApi";
 
 function obtenerFechaActual() {
   const fecha = new Date();
@@ -74,6 +76,11 @@ export default function PagosPage() {
     useState([]);
 
   const [pagos, setPagos] = useState([]);
+
+  const [historial, setHistorial] =
+    useState([]);
+
+  const location = useLocation();
 
   const [formulario, setFormulario] =
     useState(FORMULARIO_INICIAL);
@@ -172,6 +179,17 @@ export default function PagosPage() {
     });
   }, [pagos, busqueda]);
 
+  const facturasFiltradas = useMemo(() => {
+    const setFacturasIntegradas = new Set(
+      historial
+        .filter((m) => m.estado === "PROCESADO")
+        .map((m) => Number(m.payload?.idFactura))
+    );
+    return facturas.filter((f) =>
+      setFacturasIntegradas.has(Number(f.idFactura))
+    );
+  }, [facturas, historial]);
+
   useEffect(() => {
     async function cargarDatos() {
       setCargando(true);
@@ -182,17 +200,52 @@ export default function PagosPage() {
           cobradoresData,
           formasPagoData,
           pagosData,
+          historialData,
         ] = await Promise.all([
           listarFacturas(),
           listarCobradores(),
           listarFormasPago(),
           listarPagos(),
+          listarHistorialIntegracion(),
         ]);
 
         setFacturas(facturasData);
         setCobradores(cobradoresData);
         setFormasPago(formasPagoData);
         setPagos(pagosData);
+        setHistorial(historialData);
+
+        // Preselección opcional de factura desde location.state
+        if (location?.state?.idFacturaPreseleccionada) {
+          const preselectedId = Number(location.state.idFacturaPreseleccionada);
+          const factura = facturasData.find(
+            (item) => Number(item.idFactura) === preselectedId
+          );
+
+          if (factura) {
+            const totalPagado = pagosData
+              .filter(
+                (pago) =>
+                  Number(pago.factura?.idFactura) === preselectedId
+              )
+              .reduce(
+                (total, pago) =>
+                  total + Number(pago.valor || 0),
+                0,
+              );
+
+            const saldo = Math.max(
+              0,
+              Number(factura?.valorTotal ?? 0) - totalPagado,
+            );
+
+            setFormulario((actual) => ({
+              ...actual,
+              idFactura: String(preselectedId),
+              valor: saldo > 0 ? saldo.toFixed(2) : "",
+            }));
+          }
+        }
       } catch (error) {
         setMensaje({
           tipo: "danger",
@@ -207,7 +260,7 @@ export default function PagosPage() {
     }
 
     cargarDatos();
-  }, []);
+  }, [location?.state]);
 
   async function recargarPagos() {
     const data = await listarPagos();
@@ -530,6 +583,15 @@ export default function PagosPage() {
                 onSubmit={guardarPago}
                 noValidate
               >
+                {facturasFiltradas.length === 0 && (
+                  <div className="alert alert-warning small mb-3">
+                    No hay facturas disponibles para registrar pagos todavía. Las facturas aparecen aquí después de importarse desde{" "}
+                    <Link to="/integracion/cola" className="alert-link fw-bold">
+                      Integración → Cola JMS
+                    </Link>.
+                  </div>
+                )}
+
                 <div className="mb-3">
                   <label
                     className="form-label"
@@ -548,13 +610,15 @@ export default function PagosPage() {
                     onChange={
                       seleccionarFactura
                     }
-                    disabled={guardando}
+                    disabled={guardando || facturasFiltradas.length === 0}
                   >
                     <option value="">
-                      Seleccione
+                      {facturasFiltradas.length === 0
+                        ? "No hay facturas integradas"
+                        : "Seleccione"}
                     </option>
 
-                    {facturas.map((factura) => (
+                    {facturasFiltradas.map((factura) => (
                       <option
                         key={factura.idFactura}
                         value={factura.idFactura}
